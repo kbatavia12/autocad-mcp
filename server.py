@@ -17,14 +17,7 @@ from tools.query import register_query_tools
 # ---------------------------------------------------------------------------
 # Create the MCP server
 # ---------------------------------------------------------------------------
-mcp = FastMCP(
-    "autocad",
-    description=(
-        "Control AutoCAD on Windows via COM/ActiveX automation. "
-        "Supports drawing, layer management, object manipulation, "
-        "file operations, and drawing inspection."
-    ),
-)
+mcp = FastMCP("autocad")
 
 # ---------------------------------------------------------------------------
 # Register all tool groups
