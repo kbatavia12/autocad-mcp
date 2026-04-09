@@ -27,30 +27,27 @@ If you're reading this, you probably already have the folder. If not:
 
 ---
 
-## Step 2 — Install Python (if you don't have it)
+## Step 2 — Run the installer
 
-1. Go to **https://www.python.org/downloads/**
-2. Click the big yellow **Download Python 3.11.x** button
-3. Run the installer
-4. **CRITICAL:** On the first screen, tick ✅ **"Add Python to PATH"** before clicking Install
-
-> You can check if Python is already installed by opening the Start menu, typing `cmd`, and running `python --version`. If you see a version number like `Python 3.11.5`, you're good.
-
----
-
-## Step 3 — Run the installer
+You don't need to install Python first — the installer handles it.
 
 1. Open the `autocad-mcp` folder
-2. Double-click **`install.bat`**
-3. If Windows shows a blue "Windows protected your PC" warning, click **More info → Run anyway** (this is normal for scripts not signed by a corporation)
-4. The installer will:
-   - Create a private Python environment
-   - Download and install all required packages
-   - Register the COM bridge for AutoCAD
-   - Write the Claude Desktop configuration file
-5. Read the on-screen messages — it will tell you if anything goes wrong
+2. Right-click **`install.bat`** → **Run as administrator**
+   - "Run as administrator" is required so it can install Python and register the AutoCAD bridge
+   - If you just double-click it, it will re-launch itself with the UAC prompt automatically
+3. If Windows shows a blue "Windows protected your PC" warning, click **More info → Run anyway** (this is normal for unsigned scripts)
+4. A **UAC prompt** (grey/blue Windows dialog) will appear — click **Yes**
+5. The installer will automatically:
+   - Check if Python is installed
+   - **If not: install Chocolatey, then Python 3.11 via Chocolatey** (downloads ~25MB)
+   - Create a private Python environment (doesn't affect system Python)
+   - Install all required packages
+   - Register the AutoCAD COM bridge
+   - **Find your Claude Desktop config automatically** (tries 6 known locations)
+   - If it can't find it, it will ask you to paste the folder path
+   - Write the Claude Desktop configuration
 
-The whole process takes about 1–2 minutes.
+The whole process takes about 2–5 minutes (longer if Python needs to be downloaded).
 
 ---
 
@@ -79,6 +76,19 @@ Claude should respond and you should see 23 new layers appear in AutoCAD.
 
 ## Troubleshooting
 
+### "The installer asked me to paste a Claude config path"
+
+The installer tries 6 known locations automatically. If it still can't find yours:
+
+1. Open **Claude Desktop**
+2. Click the **☰ menu** (top-left) → **Settings**
+3. Scroll down — there's usually a line showing the config file path
+4. Copy that folder path and paste it into the installer prompt
+
+Alternatively: press `Win + R`, type `%APPDATA%`, press Enter, and look for a `Claude` or `AnthropicClaude` folder. Paste that folder's full path.
+
+---
+
 ### "Tools not showing up in Claude"
 
 **Most likely cause:** Claude Desktop wasn't fully quit and restarted.
@@ -102,6 +112,15 @@ AutoCAD must be **open and running** before you ask Claude to draw anything. Cla
 ### "AutoCAD LT" users
 
 AutoCAD LT **does not support COM automation** and cannot work with this MCP. You need the full AutoCAD product. This MCP is tested with AutoCAD 2019–2024.
+
+---
+
+### "Python was installed but is not yet on PATH"
+
+This happens occasionally when the PATH doesn't refresh within the same command window session. Just:
+1. Close the installer window
+2. Right-click `install.bat` → **Run as administrator** again
+3. Python will already be installed this time, so it will continue from Step 2
 
 ---
 
