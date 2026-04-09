@@ -30,6 +30,12 @@ from tools.interior_advanced import register_interior_advanced_tools
 from tools.match_properties import register_match_properties_tools
 from tools.images import register_image_tools
 
+# Curriculum-driven tools (B.Des Interior Design 2025 Pattern)
+from tools.geometric_construction import register_geometric_construction_tools
+from tools.anthropometry import register_anthropometry_tools
+from tools.mep_services import register_mep_services_tools
+from tools.tile_design import register_tile_design_tools
+
 # ---------------------------------------------------------------------------
 # Create the MCP server
 # ---------------------------------------------------------------------------
@@ -59,6 +65,12 @@ register_id_annotation_tools(mcp)
 register_interior_advanced_tools(mcp)
 register_match_properties_tools(mcp)
 register_image_tools(mcp)
+
+# Curriculum-driven tools
+register_geometric_construction_tools(mcp)
+register_anthropometry_tools(mcp)
+register_mep_services_tools(mcp)
+register_tile_design_tools(mcp)
 
 # ---------------------------------------------------------------------------
 # Run
