@@ -7,7 +7,7 @@ All dimensions assumed in millimetres (standard ID practice).
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_active_doc, point
 
 
 def register_interior_space_tools(mcp):
@@ -145,9 +145,7 @@ def register_interior_space_tools(mcp):
         ]
         handles = []
         for wx1, wy1, wx2, wy2 in walls:
-            result = draw_wall.__wrapped__(wx1, wy1, wx2, wy2, t, layer) \
-                if hasattr(draw_wall, "__wrapped__") else None
-            # Inline wall drawing to avoid closure issues
+            # Inline wall drawing
             doc = get_active_doc()
             space = doc.ModelSpace
             pts = win32com.client.VARIANT(
@@ -224,7 +222,6 @@ def register_interior_space_tools(mcp):
         door_line.Lineweight = 25
 
         # Swing arc (90 degrees)
-        swing_angle = math.radians(rotation_deg + (90 * sw if sw > 0 else 0))
         arc_start = math.radians(rotation_deg) if sw > 0 else math.radians(rotation_deg + 90)
         arc_end = arc_start + math.radians(90)
         arc = space.AddArc(point(x, y), float(width), arc_start, arc_end)

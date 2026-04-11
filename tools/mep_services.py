@@ -19,7 +19,7 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_model_space, point
 
 
 def _var(coords):
@@ -69,7 +69,6 @@ def register_mep_services_tools(mcp):
         height_aff: height above finished floor in mm (annotation only).
         Returns the handle of the outlet symbol group.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         r = 75
@@ -127,7 +126,6 @@ def register_mep_services_tools(mcp):
         switch_type: 'single', 'double', 'triple', 'dimmer', '2way', '3way'
         height_aff: switch height above finished floor (typically 1200mm).
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         r = 60
@@ -180,7 +178,6 @@ def register_mep_services_tools(mcp):
         circuit_type: 'lighting', 'power', 'dedicated', 'data', 'emergency'
         Each type uses a different linetype/color convention.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         linetypes = {
@@ -209,7 +206,7 @@ def register_mep_services_tools(mcp):
         # Circuit ID label at midpoint
         mid_idx = len(points) // 2
         mx, my = points[mid_idx][0], points[mid_idx][1]
-        t = _text(space, circuit_id, mx, my + 60, 40, layer)
+        _text(space, circuit_id, mx, my + 60, 40, layer)
 
         return {
             "circuit_id": circuit_id,
@@ -231,7 +228,6 @@ def register_mep_services_tools(mcp):
         circuits: list of dicts, each with keys: id, type, rating, load (watts), description.
         Example: [{"id": "C1", "type": "lighting", "rating": "10A", "load": 500, "description": "Living Room"}]
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -316,7 +312,6 @@ def register_mep_services_tools(mcp):
           'gate_valve', 'ball_valve', 'check_valve',
           'hose_bib', 'p_trap', 'shower_drain'
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         r = 80
@@ -419,7 +414,6 @@ def register_mep_services_tools(mcp):
         pipe_type: 'cold_supply', 'hot_supply', 'waste', 'vent', 'gas', 'rainwater'
         Each type uses standard linetype and colour conventions.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         config = {
@@ -443,7 +437,7 @@ def register_mep_services_tools(mcp):
         # Size callout at midpoint
         mid = len(points) // 2
         mx, my = float(points[mid][0]), float(points[mid][1])
-        t = _text(space, f"{cfg['abbr']} Ø{pipe_size}", mx, my + 60, 35, layer)
+        _text(space, f"{cfg['abbr']} Ø{pipe_size}", mx, my + 60, 35, layer)
 
         return {
             "pipe_type": pipe_type,
@@ -468,7 +462,6 @@ def register_mep_services_tools(mcp):
                 'wetroom' (open shower), 'kitchen'
         Draws: fixture outlines, supply lines (cold/hot), waste lines, floor drain.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         ox, oy = origin_x, origin_y
@@ -569,7 +562,6 @@ def register_mep_services_tools(mcp):
         unit_type: 'split_indoor', 'split_outdoor', 'cassette', 'ducted',
                    'floor_standing', 'window'
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -645,7 +637,6 @@ def register_mep_services_tools(mcp):
         size: face size in mm.
         cfm: airflow in CFM (annotated if non-zero).
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         s = size / 2
@@ -717,7 +708,6 @@ def register_mep_services_tools(mcp):
         duct_type: 'supply' (solid), 'return' (dashed), 'exhaust' (dotted)
         duct_width: width of duct in mm.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         hw = duct_width / 2
@@ -773,7 +763,6 @@ def register_mep_services_tools(mcp):
         detector_type: 'smoke', 'heat', 'co', 'sprinkler', 'pull_station',
                        'exit_sign', 'emergency_light'
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         r = 100
@@ -820,7 +809,6 @@ def register_mep_services_tools(mcp):
         services: list of service types to include.
         If omitted, draws all standard MEP symbols with descriptions.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 

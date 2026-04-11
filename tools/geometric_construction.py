@@ -82,7 +82,6 @@ def register_geometric_construction_tools(mcp):
         if sides < 3 or sides > 12:
             raise ValueError("sides must be between 3 and 12")
 
-        doc = get_active_doc()
         space = get_model_space()
 
         r = radius if method == "circumscribed" else radius / math.cos(math.pi / sides)
@@ -126,12 +125,10 @@ def register_geometric_construction_tools(mcp):
         if sides < 3:
             raise ValueError("sides must be >= 3")
 
-        doc = get_active_doc()
         space = get_model_space()
 
         edge_len = math.hypot(x2 - x1, y2 - y1)
         edge_angle = math.atan2(y2 - y1, x2 - x1)
-        interior = math.pi * (sides - 2) / sides
         r = edge_len / (2 * math.sin(math.pi / sides))
 
         cx = x1 + r * math.cos(edge_angle + math.pi / sides)
@@ -170,7 +167,6 @@ def register_geometric_construction_tools(mcp):
         Useful for setting up isometric projection drawings.
         Covers curriculum: Unit 6 — Isometric view of objects.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -246,7 +242,6 @@ def register_geometric_construction_tools(mcp):
         Reference lines connect the views for projection.
         Covers curriculum: Unit 5 — Orthographic projection techniques.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         W, H, G = view_width, view_height, gap
@@ -314,7 +309,6 @@ def register_geometric_construction_tools(mcp):
         Tick arrows indicate the viewing direction.
         Covers curriculum: Unit 4 (Analytical Drawing) — longitudinal & cross sections.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         angle = math.atan2(y2 - y1, x2 - x1)
@@ -417,7 +411,6 @@ def register_geometric_construction_tools(mcp):
         scales: list of scale denominators, e.g. [1, 2, 5, 10, 20, 50]
         Covers curriculum: Unit 1 (Analytical Drawing) — enlargement & reduction of scale.
         """
-        doc = get_active_doc()
         space = get_model_space()
         if scales is None:
             scales = [1, 2, 5, 10, 20, 50]
@@ -474,7 +467,6 @@ def register_geometric_construction_tools(mcp):
         and optionally a Fibonacci/golden spiral overlay.
         Covers curriculum: Fundamentals of Design I, Unit 6 — Scale and Proportion (Golden Ratio).
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         phi = (1 + math.sqrt(5)) / 2
@@ -492,8 +484,6 @@ def register_geometric_construction_tools(mcp):
 
         # Internal golden subdivisions
         x, y, w, h = origin_x, origin_y, width, height
-        arc_pts = []
-
         for i in range(subdivisions):
             sq = min(w, h)
             direction = i % 4
@@ -564,7 +554,6 @@ def register_geometric_construction_tools(mcp):
           • Radiating depth lines from VP
         Covers curriculum: Analytical Drawing Unit 5 — perspective drawing.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -635,7 +624,6 @@ def register_geometric_construction_tools(mcp):
         on the horizon line and radiating convergence lines.
         Covers curriculum: Analytical Drawing Unit 5 — 2-point perspective.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -713,7 +701,6 @@ def register_geometric_construction_tools(mcp):
         The net is laid flat showing all faces connected.
         Covers curriculum: Analytical Drawing Unit 2 — surface development.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -773,7 +760,6 @@ def register_geometric_construction_tools(mcp):
         triangular faces fanned out around the base polygon.
         Covers curriculum: Analytical Drawing Unit 2 — surface development of pyramids.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 

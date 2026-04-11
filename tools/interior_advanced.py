@@ -16,7 +16,7 @@ Advanced interior design tools:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_active_doc, point
 
 
 def _rect(space, x, y, w, h, layer, lw=18):
@@ -172,10 +172,6 @@ def register_interior_advanced_tools(mcp):
         if flat[:2] != flat[-2:]:
             flat += flat[:2]
 
-        inner_pts = win32com.client.VARIANT(
-            pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [v for pair in zip(flat[::2], flat[1::2]) for v in [pair[0], pair[1], 0]]
-        )
         inner = space.AddLightWeightPolyline(
             win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, flat)
         )
@@ -575,9 +571,6 @@ def register_interior_advanced_tools(mcp):
                 ty = y + start_y + row * pitch_y
 
                 # Clip to room boundary
-                tx_end = tx + tile_width
-                ty_end = ty + tile_depth
-
                 if tx >= x + room_width or ty >= y + room_depth:
                     continue
                 if tx < x:
@@ -860,8 +853,6 @@ def register_interior_advanced_tools(mcp):
         # Toilet (always bottom-right corner)
         t_x = x + room_width - toilet_w - 50
         t_y = y + 50
-        from tools.interior_spaces import register_interior_space_tools as _  # noqa: used below
-
         # Draw toilet inline
         ctr = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,

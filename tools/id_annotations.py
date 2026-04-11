@@ -8,7 +8,7 @@ revision clouds, material callouts, detail bubbles, grid lines.
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_active_doc, point
 
 
 def _circle(space, cx, cy, r, layer):
@@ -75,7 +75,6 @@ def register_id_annotation_tools(mcp):
         dir_map = {"north": 90, "east": 0, "south": 270, "west": 180}
         for direction in directions:
             angle_deg = dir_map.get(direction.lower(), 0)
-            angle = math.radians(angle_deg)
             # Fill wedge with hatch
             wedge_pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
@@ -429,7 +428,6 @@ def register_id_annotation_tools(mcp):
             arc_r = seg_len / num_arcs / 2
 
             for i in range(num_arcs):
-                t0 = i / num_arcs
                 t1 = (i + 0.5) / num_arcs
                 mid_x = sx + (ex - sx) * t1
                 mid_y = sy + (ey - sy) * t1

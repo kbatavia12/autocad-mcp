@@ -76,4 +76,31 @@ register_tile_design_tools(mcp)
 # Run
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    mcp.run()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="AutoCAD MCP Server")
+    parser.add_argument(
+        "--remote",
+        action="store_true",
+        help="Run as HTTP/SSE server so remote Claude Desktop clients can connect",
+    )
+    parser.add_argument(
+        "--host",
+        default="0.0.0.0",
+        help="Host to bind when running remotely (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to listen on when running remotely (default: 8000)",
+    )
+    args = parser.parse_args()
+
+    if args.remote:
+        print(f"Starting AutoCAD MCP in remote mode on {args.host}:{args.port}")
+        print("Friend's Claude Desktop config URL:  http://YOUR_IP:{}/sse".format(args.port))
+        print("Press Ctrl+C to stop.\n")
+        mcp.run(transport="sse", host=args.host, port=args.port)
+    else:
+        mcp.run()

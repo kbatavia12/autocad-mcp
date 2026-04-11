@@ -126,7 +126,6 @@ def register_furniture_tools(mcp):
 
         # Back rest
         back_depth = depth * 0.2
-        angle = math.radians(rotation_deg)
         bx = x - width / 2
         by = y + depth / 2 - back_depth
         back = _rect(space, bx, by, width, back_depth, rotation_deg, layer)
@@ -202,8 +201,6 @@ def register_furniture_tools(mcp):
         gap = 50.0
         chairs_long = max(1, round(num_chairs * width / (2 * (width + depth))))
         chairs_short = max(1, (num_chairs - 2 * chairs_long) // 2)
-
-        angle = math.radians(rotation_deg)
 
         # Top and bottom rows
         for side in [-1, 1]:
@@ -349,7 +346,6 @@ def register_furniture_tools(mcp):
         handles.append(mattress.Handle)
 
         # Headboard
-        angle = math.radians(rotation_deg)
         hb = _rect(space, x, y + depth - depth * 0.08, width, depth * 0.08, rotation_deg, layer)
         handles.append(hb.Handle)
 

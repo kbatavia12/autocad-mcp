@@ -17,7 +17,7 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_model_space, point
 
 
 def _var(coords):
@@ -107,7 +107,6 @@ def register_anthropometry_tools(mcp):
 
         Covers curriculum: Fundamentals of Design I, Unit 5 — Anthropometry.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         s = scale
@@ -231,7 +230,6 @@ def register_anthropometry_tools(mcp):
         Useful for kitchen, desk, and storage design.
         Covers curriculum: Unit 5 — Anthropometry with reference to scale and proportion.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -291,7 +289,6 @@ def register_anthropometry_tools(mcp):
         Dimensions are in mm.
         Covers curriculum: Anthropometry — clearances for activities.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -354,7 +351,6 @@ def register_anthropometry_tools(mcp):
         Draw a 1500mm wheelchair turning circle with approach clearances.
         Standard requirement for ADA/universal design compliance.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -398,7 +394,6 @@ def register_anthropometry_tools(mcp):
         corridor_type: 'standard' (900mm), 'comfortable' (1200mm),
                        'accessible' (1500mm), 'commercial' (1800mm)
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         widths = {
@@ -545,7 +540,6 @@ def register_anthropometry_tools(mcp):
         Places labelled markers at each vertex and draws the triangle with analysis.
         Covers curriculum: Anthropometry in kitchen design.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -628,7 +622,6 @@ def register_anthropometry_tools(mcp):
         category: 'seating', 'storage', 'tables', 'bathroom', 'kitchen', 'all'
         Useful for design reference sheets and client presentations.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 
@@ -745,7 +738,6 @@ def register_anthropometry_tools(mcp):
         Essential for elevation drawing set-up.
         Covers curriculum: Anthropometry for interior elevations.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
 

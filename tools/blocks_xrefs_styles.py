@@ -30,7 +30,7 @@ def register_blocks_xrefs_styles_tools(mcp):
         base = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(base_x), float(base_y), 0.0]
         )
-        block = doc.Blocks.Add(base, name)
+        doc.Blocks.Add(base, name)
         return f"Block definition '{name}' created with base point ({base_x}, {base_y})"
 
     @mcp.tool()
@@ -55,7 +55,7 @@ def register_blocks_xrefs_styles_tools(mcp):
         insertion = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(x), float(y), 0.0]
         )
-        attr_def = block.AddAttribute(
+        block.AddAttribute(
             float(height),
             1 if invisible else 0,  # acAttributeModeInvisible or acAttributeModeNormal
             prompt,

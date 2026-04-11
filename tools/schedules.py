@@ -5,10 +5,9 @@ Auto-generates room schedules, door/window schedules, material
 finish schedules, and FF&E (Furniture, Fixtures & Equipment) schedules.
 """
 
-import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_active_doc, point
 
 
 def _make_table(space, x, y, rows, cols, row_h, col_widths, layer="A-ANNO"):
@@ -17,7 +16,6 @@ def _make_table(space, x, y, rows, cols, row_h, col_widths, layer="A-ANNO"):
     col_widths: list of widths for each column.
     Returns list of cell (x,y) centers for text placement.
     """
-    doc = get_active_doc()
     total_w = sum(col_widths)
     total_h = rows * row_h
     handles = []
@@ -344,8 +342,6 @@ def register_schedule_tools(mcp):
         space = doc.ModelSpace
         handles = []
         col_gap = swatch_size * 0.5
-        text_col_w = swatch_size * 5
-
         for i, mat in enumerate(materials):
             row_y = y - i * (swatch_size + swatch_size * 0.3)
 

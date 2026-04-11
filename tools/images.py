@@ -9,7 +9,7 @@ attaching material swatches, mood boards, site photos, and reference images.
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_active_doc
 
 
 def register_image_tools(mcp):
@@ -43,8 +43,6 @@ def register_image_tools(mcp):
             pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(x), float(y), 0.0]
         )
         scale_x = float(width)
-        scale_y = float(height) if height > 0 else float(width)
-
         img = space.AddRaster(
             file_path,
             insertion,
@@ -428,7 +426,7 @@ def register_image_tools(mcp):
                 )
                 img.Layer = layer
                 handles.append(img.Handle)
-            except Exception as e:
+            except Exception:
                 # Draw a placeholder box if image fails
                 pts = win32com.client.VARIANT(
                     pythoncom.VT_ARRAY | pythoncom.VT_R8,
@@ -444,7 +442,7 @@ def register_image_tools(mcp):
                     pythoncom.VT_ARRAY | pythoncom.VT_R8,
                     [ix + cell_width / 2, iy + cell_height / 2, 0.0]
                 )
-                err_txt = space.AddText(f"[Image not found]", err_pt, text_height)
+                err_txt = space.AddText("[Image not found]", err_pt, text_height)
                 err_txt.Layer = layer
                 err_txt.Alignment = 4
                 err_txt.TextAlignmentPoint = err_pt
@@ -529,7 +527,6 @@ def register_image_tools(mcp):
 
         # Hero image (left 60%)
         hero_w = board_width * 0.58
-        hero_h = board_height - 2 * gap
         try:
             insertion = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,

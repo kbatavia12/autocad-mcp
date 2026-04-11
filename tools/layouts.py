@@ -5,7 +5,7 @@ Tools for managing paper space layouts, viewports, and plotting in AutoCAD.
 
 import pythoncom
 import win32com.client
-from autocad_helpers import get_acad, get_active_doc, point
+from autocad_helpers import get_active_doc
 
 
 def register_layout_tools(mcp):

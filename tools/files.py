@@ -3,7 +3,7 @@ tools/files.py
 Tools for file operations and viewport/view control in AutoCAD.
 """
 
-from autocad_helpers import get_acad, get_active_doc, point
+from autocad_helpers import get_acad, get_active_doc
 import win32com.client
 import pythoncom
 
@@ -80,7 +80,7 @@ def register_file_tools(mcp):
     def export_to_pdf(output_path: str) -> str:
         """Export the active drawing's model space to a PDF file."""
         doc = get_active_doc()
-        doc.SendCommand(f'_PLOT\n')  # Simplified; full programmatic PDF export needs plot config
+        doc.SendCommand('_PLOT\n')  # Simplified; full programmatic PDF export needs plot config
         return (
             f"Note: full PDF export via COM requires a preconfigured PC3 plotter. "
             f"Attempted plot command for '{output_path}'. "

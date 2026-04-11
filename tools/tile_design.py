@@ -22,7 +22,7 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_model_space, point
 
 
 def _var(coords):
@@ -149,7 +149,6 @@ def register_tile_design_tools(mcp):
 
         Returns full tile count, cut tile count, and area coverage stats.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         step_x = tile_w + grout
@@ -190,8 +189,6 @@ def register_tile_design_tools(mcp):
 
         total = full_tiles + cut_tiles
         area_sqm = round(room_w * room_h / 1_000_000, 2)
-        tile_area = round(tile_w * tile_h / 1_000_000, 4)
-
         return {
             "pattern": "grid",
             "tile_size": [tile_w, tile_h],
@@ -230,7 +227,6 @@ def register_tile_design_tools(mcp):
         direction: 'horizontal' (offset is in X per row) or
                    'vertical'   (offset is in Y per column)
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         step_x = tile_w + grout
@@ -296,7 +292,6 @@ def register_tile_design_tools(mcp):
         creating a zigzag.
         In 90° (straight) herringbone: tiles alternate horizontal/vertical.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         # Determine drop centre
@@ -394,7 +389,6 @@ def register_tile_design_tools(mcp):
         tile_w: long dimension, tile_h: short dimension.
         The V-angle is determined by the tile aspect ratio.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         if drop_mode == "centre":
@@ -471,7 +465,6 @@ def register_tile_design_tools(mcp):
         For a 2×1 tile: groups of 2 tiles horizontal alternating with 2 tiles vertical.
         For square tiles (tile_w == tile_h): classic pinwheel basket weave.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         g = tiles_per_group
@@ -552,7 +545,6 @@ def register_tile_design_tools(mcp):
           • 2 rectangles:     1.5m × 1.0m  → module * 1.5 × module * 1.0
           • 1 small square:   1.0m × 1.0m  → module * 1.0
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         M = module
@@ -622,7 +614,6 @@ def register_tile_design_tools(mcp):
         Lay square tiles on the diagonal (45°).
         All tiles are square, rotated 45°. The tile_size is the side length.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         if drop_mode == "centre":
@@ -632,7 +623,6 @@ def register_tile_design_tools(mcp):
         else:
             cx, cy = room_x, room_y
 
-        step = (tile_size + grout) * math.sqrt(2) / math.sqrt(2)
         diag_step = tile_size + grout
 
         tile_count = 0; handles = []
@@ -694,7 +684,6 @@ def register_tile_design_tools(mcp):
             {"x":50, "y":50, "w":100, "h":100},         # diagonal offset
           ]
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         if drop_mode == "centre":
@@ -754,7 +743,6 @@ def register_tile_design_tools(mcp):
         The border strip is inset from the room edge by border_width.
         Remaining interior is left clear for the main tile fill.
         """
-        doc = get_active_doc()
         space = get_model_space()
         handles = []
         tile_count = 0
@@ -898,7 +886,6 @@ def register_tile_design_tools(mcp):
           }
         Each zone gets its own layer: {layer_prefix}-{zone_name}
         """
-        doc = get_active_doc()
         space = get_model_space()
         results = []
 

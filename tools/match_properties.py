@@ -311,7 +311,6 @@ def register_match_properties_tools(mcp):
         Useful for bulk restyling of a layer's objects without changing the layer itself.
         Pass empty string to skip a property.
         """
-        doc = get_active_doc()
         space = get_model_space()
         updated = 0
 
@@ -385,7 +384,6 @@ def register_match_properties_tools(mcp):
         Optionally filter to a specific layer.
         Returns a summary of how many objects have overrides vs ByLayer settings.
         """
-        doc = get_active_doc()
         space = get_model_space()
 
         by_layer = 0
