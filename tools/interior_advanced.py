@@ -81,6 +81,9 @@ def register_interior_advanced_tools(mcp):
         notch_width/depth: size of the rectangular notch cut from the top-right.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_layer(doc, "A-WALL-PATT", 8)
+        ensure_layer(doc, "A-ANNO-ROOM", 2)
         space = doc.ModelSpace
         t = wall_thickness
 

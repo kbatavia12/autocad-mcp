@@ -144,11 +144,13 @@ def register_interior_space_tools(mcp):
             (x - t,       y + depth,   x + width + t, y + depth + t), # top
             (x - t,       y - t,       x,             y + depth + t), # left
         ]
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_layer(doc, "A-WALL-PATT", 8)
+        ensure_layer(doc, "A-ANNO-ROOM", 2)
+        space = doc.ModelSpace
         handles = []
         for wx1, wy1, wx2, wy2 in walls:
-            # Inline wall drawing
-            doc = get_active_doc()
-            space = doc.ModelSpace
             pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
                 [wx1, wy1, wx2, wy1, wx2, wy2, wx1, wy2, wx1, wy1]
@@ -166,7 +168,6 @@ def register_interior_space_tools(mcp):
             hatch.Layer = "A-WALL-PATT"
             handles.append(wall.Handle)
 
-        doc = get_active_doc()
         doc.Regen(1)
 
         label_handle = None
@@ -296,6 +297,7 @@ def register_interior_space_tools(mcp):
         width: total opening width.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         angle = math.radians(rotation_deg)
         perp_x = -math.sin(angle) * 100
@@ -343,6 +345,7 @@ def register_interior_space_tools(mcp):
         width: window opening width. wall_thickness: depth of window in wall.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         angle = math.radians(rotation_deg)
         perp_x = -math.sin(angle)
@@ -511,6 +514,7 @@ def register_interior_space_tools(mcp):
         text_height in mm (e.g. 200 = 200mm at 1:50 scale = 4mm on paper).
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
 
         name_pt = win32com.client.VARIANT(

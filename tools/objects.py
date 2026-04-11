@@ -5,7 +5,7 @@ Tools for selecting, manipulating, and modifying existing AutoCAD objects.
 
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point, color_index
+from autocad_helpers import get_active_doc, get_model_space, ensure_layer, point, color_index
 
 
 def register_object_tools(mcp):
@@ -150,6 +150,7 @@ def register_object_tools(mcp):
     def set_entity_layer(handle: str, layer: str) -> str:
         """Move an entity to a different layer."""
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         obj = doc.HandleToObject(handle)
         obj.Layer = layer
         return f"Entity {handle} moved to layer '{layer}'"

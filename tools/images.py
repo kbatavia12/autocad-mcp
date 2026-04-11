@@ -9,7 +9,7 @@ attaching material swatches, mood boards, site photos, and reference images.
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc
+from autocad_helpers import get_active_doc, ensure_layer
 
 
 def register_image_tools(mcp):
@@ -37,6 +37,7 @@ def register_image_tools(mcp):
         site photographs, scanned survey drawings.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
 
         insertion = win32com.client.VARIANT(
@@ -83,6 +84,8 @@ def register_image_tools(mcp):
         Useful for attaching material sample images with product codes as callouts.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_layer(doc, "A-ANNO-MATL", 4)
         space = doc.ModelSpace
         handles = []
 
@@ -392,6 +395,9 @@ def register_image_tools(mcp):
           "supplier": "Stone Import Co.", "code": "CAL-001"}]
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_layer(doc, "A-ANNO", 7)
+        ensure_layer(doc, "A-ANNO-MATL", 4)
         space = doc.ModelSpace
         handles = []
         rows = math.ceil(len(images) / cols)
@@ -497,6 +503,9 @@ def register_image_tools(mcp):
         Board is divided: hero takes 60% width, accents fill the right 40% in a grid.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_layer(doc, "A-ANNO", 7)
+        ensure_layer(doc, "A-ANNO-MATL", 4)
         space = doc.ModelSpace
         handles = []
         gap = board_width * 0.01

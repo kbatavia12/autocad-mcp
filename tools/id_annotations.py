@@ -8,7 +8,7 @@ revision clouds, material callouts, detail bubbles, grid lines.
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, point
+from autocad_helpers import get_active_doc, ensure_layer, ensure_standard_linetypes, point
 
 
 def _circle(space, cx, cy, r, layer):
@@ -61,6 +61,7 @@ def register_id_annotation_tools(mcp):
         Active quadrants are filled (solid hatch); inactive are empty.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         handles = []
 
@@ -123,6 +124,8 @@ def register_id_annotation_tools(mcp):
         label: section reference label (e.g. 'AA', '1').
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -177,6 +180,7 @@ def register_id_annotation_tools(mcp):
         sheet_ref: the sheet where the detail is drawn (e.g. 'A301').
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         handles = []
 
@@ -218,6 +222,7 @@ def register_id_annotation_tools(mcp):
         pointer_x/y: where the arrow points. text_x/y: where the text label sits.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         handles = []
 
@@ -263,6 +268,7 @@ def register_id_annotation_tools(mcp):
         size: overall height of the symbol.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         handles = []
         angle = math.radians(north_rotation_deg)
@@ -334,6 +340,7 @@ def register_id_annotation_tools(mcp):
         Each segment represents (segment_length_mm_on_paper × scale) mm in reality.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         handles = []
 
@@ -412,6 +419,7 @@ def register_id_annotation_tools(mcp):
         revision_label: optional letter/number placed near the cloud.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         handles = []
 
@@ -483,6 +491,8 @@ def register_id_annotation_tools(mcp):
         Vertical lines are labelled A, B, C... Horizontal lines are labelled 1, 2, 3...
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -561,6 +571,7 @@ def register_id_annotation_tools(mcp):
         axis: 'horizontal' or 'vertical'.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
         space = doc.ModelSpace
         handles = []
 
@@ -570,20 +581,19 @@ def register_id_annotation_tools(mcp):
         for i in range(len(points) - 1):
             if axis == "horizontal":
                 x1, x2 = points[i], points[i + 1]
-                # Guess a Y position from first point or use offset
                 y_ref = 0.0
                 dim = space.AddDimAligned(
-                    [x1, y_ref, 0.0],
-                    [x2, y_ref, 0.0],
-                    [x1 + (x2 - x1) / 2, y_ref - offset, 0.0]
+                    point(x1, y_ref),
+                    point(x2, y_ref),
+                    point(x1 + (x2 - x1) / 2, y_ref - offset)
                 )
             else:
                 y1, y2 = points[i], points[i + 1]
                 x_ref = 0.0
                 dim = space.AddDimAligned(
-                    [x_ref, y1, 0.0],
-                    [x_ref, y2, 0.0],
-                    [x_ref - offset, y1 + (y2 - y1) / 2, 0.0]
+                    point(x_ref, y1),
+                    point(x_ref, y2),
+                    point(x_ref - offset, y1 + (y2 - y1) / 2)
                 )
             dim.Layer = layer
             handles.append(dim.Handle)

@@ -6,7 +6,7 @@ Tools for creating geometry in AutoCAD model space.
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_model_space, get_active_doc, point
+from autocad_helpers import get_model_space, get_active_doc, ensure_layer, point
 
 
 def register_drawing_tools(mcp):
@@ -14,8 +14,10 @@ def register_drawing_tools(mcp):
     @mcp.tool()
     def draw_line(x1: float, y1: float, x2: float, y2: float, layer: str = "") -> str:
         """Draw a straight line between two points in model space."""
-        space = get_model_space()
-        line = space.AddLine(point(x1, y1), point(x2, y2))
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
+        line = doc.ModelSpace.AddLine(point(x1, y1), point(x2, y2))
         if layer:
             line.Layer = layer
         return f"Line drawn from ({x1}, {y1}) to ({x2}, {y2})"
@@ -23,8 +25,10 @@ def register_drawing_tools(mcp):
     @mcp.tool()
     def draw_circle(cx: float, cy: float, radius: float, layer: str = "") -> str:
         """Draw a circle given a center point and radius."""
-        space = get_model_space()
-        circle = space.AddCircle(point(cx, cy), float(radius))
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
+        circle = doc.ModelSpace.AddCircle(point(cx, cy), float(radius))
         if layer:
             circle.Layer = layer
         return f"Circle drawn at ({cx}, {cy}) with radius {radius}"
@@ -36,8 +40,10 @@ def register_drawing_tools(mcp):
         layer: str = ""
     ) -> str:
         """Draw an arc. Angles are in degrees, measured counter-clockwise from the X axis."""
-        space = get_model_space()
-        arc = space.AddArc(
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
+        arc = doc.ModelSpace.AddArc(
             point(cx, cy),
             float(radius),
             math.radians(start_angle_deg),
@@ -52,12 +58,14 @@ def register_drawing_tools(mcp):
         x1: float, y1: float, x2: float, y2: float, layer: str = ""
     ) -> str:
         """Draw an axis-aligned rectangle defined by two corner points."""
-        space = get_model_space()
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
         pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
             [x1, y1, x2, y1, x2, y2, x1, y2, x1, y1],
         )
-        pline = space.AddLightWeightPolyline(pts)
+        pline = doc.ModelSpace.AddLightWeightPolyline(pts)
         pline.Closed = True
         if layer:
             pline.Layer = layer
@@ -73,11 +81,13 @@ def register_drawing_tools(mcp):
         """
         if len(points_flat) < 4 or len(points_flat) % 2 != 0:
             raise ValueError("points_flat must be an even list of at least 4 values (x1,y1,x2,y2,...)")
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
         pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(v) for v in points_flat]
         )
-        space = get_model_space()
-        pline = space.AddLightWeightPolyline(pts)
+        pline = doc.ModelSpace.AddLightWeightPolyline(pts)
         pline.Closed = closed
         if layer:
             pline.Layer = layer
@@ -90,8 +100,10 @@ def register_drawing_tools(mcp):
         height: float = 2.5, rotation_deg: float = 0.0, layer: str = ""
     ) -> str:
         """Add single-line text to model space at a given position."""
-        space = get_model_space()
-        txt = space.AddText(text, point(x, y), float(height))
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
+        txt = doc.ModelSpace.AddText(text, point(x, y), float(height))
         txt.Rotation = math.radians(rotation_deg)
         if layer:
             txt.Layer = layer
@@ -103,8 +115,10 @@ def register_drawing_tools(mcp):
         width: float = 100.0, height: float = 2.5, layer: str = ""
     ) -> str:
         """Add multi-line text (MText) to model space at a given position."""
-        space = get_model_space()
-        mtext = space.AddMText(point(x, y), float(width), text)
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
+        mtext = doc.ModelSpace.AddMText(point(x, y), float(width), text)
         mtext.Height = float(height)
         if layer:
             mtext.Layer = layer
@@ -120,11 +134,13 @@ def register_drawing_tools(mcp):
         Draw an ellipse. The major axis vector (major_x, major_y) defines
         the direction and half-length of the major axis. ratio is minor/major (0 < ratio <= 1).
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
         major_axis = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(major_x), float(major_y), 0.0]
         )
-        ellipse = space.AddEllipse(point(cx, cy), major_axis, float(ratio))
+        ellipse = doc.ModelSpace.AddEllipse(point(cx, cy), major_axis, float(ratio))
         if layer:
             ellipse.Layer = layer
         return f"Ellipse drawn at ({cx}, {cy}), major=({major_x},{major_y}), ratio={ratio}"
@@ -137,13 +153,15 @@ def register_drawing_tools(mcp):
         """
         if len(points_flat) < 9 or len(points_flat) % 3 != 0:
             raise ValueError("points_flat must be a multiple of 3 with at least 9 values (x,y,z per point)")
+        doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
         pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(v) for v in points_flat]
         )
         start_tan = win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, [0.0, 0.0, 0.0])
         end_tan = win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, [0.0, 0.0, 0.0])
-        space = get_model_space()
-        spline = space.AddSpline(pts, start_tan, end_tan)
+        spline = doc.ModelSpace.AddSpline(pts, start_tan, end_tan)
         if layer:
             spline.Layer = layer
         n = len(points_flat) // 3
@@ -160,6 +178,8 @@ def register_drawing_tools(mcp):
         (e.g. ANSI31, ANSI32, SOLID, CROSS). Scale adjusts pattern spacing.
         """
         doc = get_active_doc()
+        if layer:
+            ensure_layer(doc, layer)
         space = doc.ModelSpace
 
         # Create a bounding rectangle first
