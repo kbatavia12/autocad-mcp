@@ -260,7 +260,7 @@ def register_anthropometry_tools(mcp):
             zone_pts = [x-800, y+low, x+800, y+low, x+800, y+high, x-800, y+high, x-800, y+low]
             zone = _polyline(space, zone_pts, closed=True)
             zone.Layer = layer; handles.append(zone.Handle)
-            t = space.AddText("OPTIMAL WORK ZONE 745–1430mm", point(x, y + (low+high)/2), 30)
+            t = space.AddText("OPTIMAL WORK ZONE 745-1430mm", point(x, y + (low+high)/2), 30)
             t.Layer = layer; handles.append(t.Handle)
 
         return {
@@ -365,7 +365,7 @@ def register_anthropometry_tools(mcp):
                        cx + r*math.cos(a), cy + r*math.sin(a))
             ln.Layer = layer; ln.Linetype = "DASHED"; handles.append(ln.Handle)
 
-        t = space.AddText("⌀1500 TURNING CIRCLE", point(cx, cy + r + 40), 35)
+        t = space.AddText("O1500 TURNING CIRCLE", point(cx, cy + r + 40), 35)
         t.Layer = layer; handles.append(t.Handle)
         t2 = space.AddText("(ADA COMPLIANT)", point(cx, cy + r + 80), 30)
         t2.Layer = layer; handles.append(t2.Handle)
@@ -427,7 +427,7 @@ def register_anthropometry_tools(mcp):
         # Label
         cx = x1 + (length if orientation == "horizontal" else w) / 2
         cy = y1 + (w if orientation == "horizontal" else length) / 2
-        t = space.AddText(f"{corridor_type.upper()} CORRIDOR\n{w}mm WIDE", point(cx, cy), 30)
+        t = space.AddText(f"{corridor_type.upper()} CORRIDOR  {w}mm WIDE", point(cx, cy), 30)
         t.Layer = layer; handles.append(t.Handle)
 
         return {

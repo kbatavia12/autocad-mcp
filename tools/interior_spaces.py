@@ -517,7 +517,7 @@ def register_interior_space_tools(mcp):
         area_pt = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(x), float(y) - text_height * 0.3, 0.0]
         )
-        area_txt = space.AddText(f"{area_m2:.2f} m²", area_pt, float(text_height) * 0.7)
+        area_txt = space.AddText(f"{area_m2:.2f} sqm", area_pt, float(text_height) * 0.7)
         area_txt.Layer = layer
         area_txt.Alignment = 4
         area_txt.TextAlignmentPoint = area_pt
