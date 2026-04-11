@@ -14,20 +14,8 @@ set "SCRIPT_DIR=%~dp0"
 if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
 
 REM ════════════════════════════════════════════════════════════
-REM  STEP 0 — Request admin elevation (needed for Chocolatey
-REM           and pywin32 COM registration)
-REM ════════════════════════════════════════════════════════════
-net session >nul 2>&1
-if %errorlevel% neq 0 (
-    echo  This installer needs administrator rights for two things:
-    echo    - Installing Python via Chocolatey (if Python is missing)
-    echo    - Registering the AutoCAD COM bridge (pywin32)
-    echo.
-    echo  A UAC prompt will appear. Click "Yes" to continue.
-    echo.
-    powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs -ArgumentList 'ELEVATED'"
-    exit /b
-)
+REM  NOTE: Run as Administrator for Chocolatey + pywin32 to work.
+REM        Right-click install.bat → "Run as administrator"
 
 REM ════════════════════════════════════════════════════════════
 REM  STEP 1 — Python check → auto-install via Chocolatey
