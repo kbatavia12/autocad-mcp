@@ -17,7 +17,7 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, get_model_space, point
+from autocad_helpers import get_active_doc, ensure_layer, get_model_space, point
 
 
 # ---------------------------------------------------------------------------
@@ -82,7 +82,9 @@ def register_geometric_construction_tools(mcp):
         if sides < 3 or sides > 12:
             raise ValueError("sides must be between 3 and 12")
 
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
 
         r = radius if method == "circumscribed" else radius / math.cos(math.pi / sides)
         rot = math.radians(rotation_deg)
@@ -125,7 +127,9 @@ def register_geometric_construction_tools(mcp):
         if sides < 3:
             raise ValueError("sides must be >= 3")
 
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
 
         edge_len = math.hypot(x2 - x1, y2 - y1)
         edge_angle = math.atan2(y2 - y1, x2 - x1)
@@ -167,7 +171,9 @@ def register_geometric_construction_tools(mcp):
         Useful for setting up isometric projection drawings.
         Covers curriculum: Unit 6 — Isometric view of objects.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
         handles = []
 
         cols = int(width / grid_spacing) + 2
@@ -242,7 +248,9 @@ def register_geometric_construction_tools(mcp):
         Reference lines connect the views for projection.
         Covers curriculum: Unit 5 — Orthographic projection techniques.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
 
         W, H, G = view_width, view_height, gap
         ox, oy = origin_x, origin_y
@@ -309,7 +317,9 @@ def register_geometric_construction_tools(mcp):
         Tick arrows indicate the viewing direction.
         Covers curriculum: Unit 4 (Analytical Drawing) — longitudinal & cross sections.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
 
         angle = math.atan2(y2 - y1, x2 - x1)
         perp = angle + math.pi / 2
@@ -358,7 +368,8 @@ def register_geometric_construction_tools(mcp):
         Covers curriculum: sections in plan & elevation.
         """
         doc = get_active_doc()
-        space = get_model_space()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
 
         material_hatches = {
             "concrete": ("AR-CONC", 1.0, 0),
@@ -411,7 +422,9 @@ def register_geometric_construction_tools(mcp):
         scales: list of scale denominators, e.g. [1, 2, 5, 10, 20, 50]
         Covers curriculum: Unit 1 (Analytical Drawing) — enlargement & reduction of scale.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
         if scales is None:
             scales = [1, 2, 5, 10, 20, 50]
 
@@ -467,7 +480,9 @@ def register_geometric_construction_tools(mcp):
         and optionally a Fibonacci/golden spiral overlay.
         Covers curriculum: Fundamentals of Design I, Unit 6 — Scale and Proportion (Golden Ratio).
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
 
         phi = (1 + math.sqrt(5)) / 2
         height = width / phi
@@ -554,7 +569,9 @@ def register_geometric_construction_tools(mcp):
           • Radiating depth lines from VP
         Covers curriculum: Analytical Drawing Unit 5 — perspective drawing.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
         handles = []
 
         # Ground line
@@ -624,7 +641,9 @@ def register_geometric_construction_tools(mcp):
         on the horizon line and radiating convergence lines.
         Covers curriculum: Analytical Drawing Unit 5 — 2-point perspective.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
         handles = []
 
         hl_y = origin_y + horizon_height
@@ -701,7 +720,9 @@ def register_geometric_construction_tools(mcp):
         The net is laid flat showing all faces connected.
         Covers curriculum: Analytical Drawing Unit 2 — surface development.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
         handles = []
 
         # Lateral faces: `sides` rectangles placed side by side
@@ -760,7 +781,9 @@ def register_geometric_construction_tools(mcp):
         triangular faces fanned out around the base polygon.
         Covers curriculum: Analytical Drawing Unit 2 — surface development of pyramids.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
         handles = []
 
         base_r = base_edge / (2 * math.sin(math.pi / sides))

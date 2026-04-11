@@ -22,7 +22,9 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_model_space, point
+from autocad_helpers import get_active_doc, ensure_layer, get_model_space, point
+
+_ensured_layers: set = set()  # session-level cache to avoid repeated COM layer checks
 
 
 def _var(coords):
@@ -31,8 +33,17 @@ def _var(coords):
     )
 
 
+def _ensure(layer: str) -> str:
+    """Ensure a layer exists (cached per session)."""
+    if layer not in _ensured_layers:
+        ensure_layer(get_active_doc(), layer)
+        _ensured_layers.add(layer)
+    return layer
+
+
 def _rect(space, x, y, w, h, layer, closed=True, hatch=None, hatch_scale=1.0, hatch_angle=0.0):
     """Draw a rectangle; optionally hatch it. Returns (polyline, hatch) or (polyline, None)."""
+    _ensure(layer)
     pts = [x, y, x+w, y, x+w, y+h, x, y+h, x, y]
     pl = space.AddLightWeightPolyline(_var(pts))
     pl.Layer = layer
@@ -65,6 +76,7 @@ def _rotated_rect(space, cx, cy, w, h, angle_deg, layer):
         ry = cy + dx * math.sin(a) + dy * math.cos(a)
         pts.extend([rx, ry])
     pts.extend(pts[:2])
+    _ensure(layer)
     pl = space.AddLightWeightPolyline(_var(pts))
     pl.Layer = layer; pl.Closed = True
     return pl
@@ -149,7 +161,9 @@ def register_tile_design_tools(mcp):
 
         Returns full tile count, cut tile count, and area coverage stats.
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        ensure_layer(doc, layer)
+        space = doc.ModelSpace
 
         step_x = tile_w + grout
         step_y = tile_h + grout
@@ -886,7 +900,8 @@ def register_tile_design_tools(mcp):
           }
         Each zone gets its own layer: {layer_prefix}-{zone_name}
         """
-        space = get_model_space()
+        doc = get_active_doc()
+        space = doc.ModelSpace
         results = []
 
         for zone in zones:
@@ -901,6 +916,7 @@ def register_tile_design_tools(mcp):
             g = zone.get("grout", 3.0)
             dm = zone.get("drop_mode", "centre")
             z_layer = f"{layer_prefix}-{name.upper().replace(' ', '-')}"
+            ensure_layer(doc, z_layer)
 
             # Zone boundary
             z_pts = [zx, zy, zx+zw, zy, zx+zw, zy+zh, zx, zy+zh, zx, zy]

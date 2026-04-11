@@ -7,7 +7,7 @@ All dimensions assumed in millimetres (standard ID practice).
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, point
+from autocad_helpers import get_active_doc, ensure_layer, point
 
 
 def register_interior_space_tools(mcp):
@@ -79,6 +79,8 @@ def register_interior_space_tools(mcp):
         Returns handles for the wall outline and optional hatch.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_layer(doc, "A-WALL-PATT", 8)
         space = doc.ModelSpace
 
         dx = x2 - x1
@@ -96,8 +98,7 @@ def register_interior_space_tools(mcp):
             [x1, y1,
              x2, y2,
              x2 + nx, y2 + ny,
-             x1 + nx, y1 + ny,
-             x1, y1, 0]
+             x1 + nx, y1 + ny]
         )
         wall = space.AddLightWeightPolyline(pts)
         wall.Closed = True

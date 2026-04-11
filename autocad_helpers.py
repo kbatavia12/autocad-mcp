@@ -48,3 +48,13 @@ def color_index(name: str) -> int:
         "gray": 8, "grey": 8,
     }
     return colors.get(name.lower(), 7)
+
+
+def ensure_layer(doc, name: str, color: int = 7) -> str:
+    """Create layer if it doesn't exist; return the layer name."""
+    try:
+        doc.Layers.Item(name)
+    except Exception:
+        layer = doc.Layers.Add(name)
+        layer.color = color
+    return name

@@ -280,7 +280,7 @@ def register_blocks_xrefs_styles_tools(mcp):
         return [
             {
                 "name": s.Name,
-                "scale": s.ScaleFactor,
+                "scale": s.OverallScale,
                 "text_height": s.TextHeight,
                 "arrow_size": s.ArrowheadSize,
                 "units": s.LinearUnitFormat,
@@ -302,7 +302,7 @@ def register_blocks_xrefs_styles_tools(mcp):
         """
         doc = get_active_doc()
         style = doc.DimStyles.Add(name)
-        style.ScaleFactor = float(scale)
+        style.OverallScale = float(scale)
         style.TextHeight = float(text_height)
         style.ArrowheadSize = float(arrow_size)
         style.LinearUnitFormat = int(linear_units)
