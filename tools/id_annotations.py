@@ -78,10 +78,10 @@ def register_id_annotation_tools(mcp):
             # Fill wedge with hatch
             wedge_pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
-                [x, y, 0,
-                 x + radius * math.cos(math.radians(angle_deg - 45)), y + radius * math.sin(math.radians(angle_deg - 45)), 0,
-                 x + radius * math.cos(math.radians(angle_deg + 45)), y + radius * math.sin(math.radians(angle_deg + 45)), 0,
-                 x, y, 0]
+                [x, y,
+                 x + radius * math.cos(math.radians(angle_deg - 45)), y + radius * math.sin(math.radians(angle_deg - 45)),
+                 x + radius * math.cos(math.radians(angle_deg + 45)), y + radius * math.sin(math.radians(angle_deg + 45)),
+                 x, y]
             )
             wedge = space.AddLightWeightPolyline(wedge_pts)
             wedge.Closed = True
@@ -280,10 +280,10 @@ def register_id_annotation_tools(mcp):
         base_y = y + (size * 0.7) * math.cos(angle)
         arrow_pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [tip_x, tip_y, 0,
-             base_x + perp_x, base_y + perp_y, 0,
-             base_x - perp_x, base_y - perp_y, 0,
-             tip_x, tip_y, 0]
+            [tip_x, tip_y,
+             base_x + perp_x, base_y + perp_y,
+             base_x - perp_x, base_y - perp_y,
+             tip_x, tip_y]
         )
         arrowhead = space.AddLightWeightPolyline(arrow_pts)
         arrowhead.Closed = True
@@ -346,11 +346,11 @@ def register_id_annotation_tools(mcp):
             seg_x = x + i * seg_w
             pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
-                [seg_x, y, 0,
-                 seg_x + seg_w, y, 0,
-                 seg_x + seg_w, y - bar_height, 0,
-                 seg_x, y - bar_height, 0,
-                 seg_x, y, 0]
+                [seg_x, y,
+                 seg_x + seg_w, y,
+                 seg_x + seg_w, y - bar_height,
+                 seg_x, y - bar_height,
+                 seg_x, y]
             )
             box = space.AddLightWeightPolyline(pts)
             box.Closed = True

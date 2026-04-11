@@ -348,10 +348,10 @@ def register_schedule_tools(mcp):
             # Swatch box
             pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
-                [x, row_y, 0,
-                 x + swatch_size, row_y, 0,
-                 x + swatch_size, row_y - swatch_size, 0,
-                 x, row_y - swatch_size, 0,
+                [x, row_y,
+                 x + swatch_size, row_y,
+                 x + swatch_size, row_y - swatch_size,
+                 x, row_y - swatch_size,
                  x, row_y, 0]
             )
             box = space.AddLightWeightPolyline(pts)

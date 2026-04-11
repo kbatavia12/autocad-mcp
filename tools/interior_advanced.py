@@ -22,7 +22,7 @@ from autocad_helpers import get_active_doc, point
 def _rect(space, x, y, w, h, layer, lw=18):
     pts = win32com.client.VARIANT(
         pythoncom.VT_ARRAY | pythoncom.VT_R8,
-        [x, y, 0, x + w, y, 0, x + w, y + h, 0, x, y + h, 0, x, y, 0]
+        [x, y, x + w, y, x + w, y + h, x, y + h, x, y]
     )
     obj = space.AddLightWeightPolyline(pts)
     obj.Closed = True
@@ -87,13 +87,13 @@ def register_interior_advanced_tools(mcp):
         # L-shape outline (internal)
         inner_pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [x, y, 0,
-             x + total_width, y, 0,
-             x + total_width, y + total_depth - notch_depth, 0,
-             x + total_width - notch_width, y + total_depth - notch_depth, 0,
-             x + total_width - notch_width, y + total_depth, 0,
-             x, y + total_depth, 0,
-             x, y, 0]
+            [x, y,
+             x + total_width, y,
+             x + total_width, y + total_depth - notch_depth,
+             x + total_width - notch_width, y + total_depth - notch_depth,
+             x + total_width - notch_width, y + total_depth,
+             x, y + total_depth,
+             x, y]
         )
         inner = space.AddLightWeightPolyline(inner_pts)
         inner.Closed = True
@@ -103,13 +103,13 @@ def register_interior_advanced_tools(mcp):
         # Outer wall outline
         outer_pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [x - t, y - t, 0,
-             x + total_width + t, y - t, 0,
-             x + total_width + t, y + total_depth - notch_depth, 0,
-             x + total_width - notch_width, y + total_depth - notch_depth, 0,
-             x + total_width - notch_width, y + total_depth + t, 0,
-             x - t, y + total_depth + t, 0,
-             x - t, y - t, 0]
+            [x - t, y - t,
+             x + total_width + t, y - t,
+             x + total_width + t, y + total_depth - notch_depth,
+             x + total_width - notch_width, y + total_depth - notch_depth,
+             x + total_width - notch_width, y + total_depth + t,
+             x - t, y + total_depth + t,
+             x - t, y - t]
         )
         outer = space.AddLightWeightPolyline(outer_pts)
         outer.Closed = True
@@ -283,11 +283,11 @@ def register_interior_advanced_tools(mcp):
 
         pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [x1, y1, 0,
-             x2, y2, 0,
-             x2 + nx, y2 + ny, 0,
-             x1 + nx, y1 + ny, 0,
-             x1, y1, 0]
+            [x1, y1,
+             x2, y2,
+             x2 + nx, y2 + ny,
+             x1 + nx, y1 + ny,
+             x1, y1]
         )
         bulkhead = space.AddLightWeightPolyline(pts)
         bulkhead.Closed = True
@@ -727,10 +727,10 @@ def register_interior_advanced_tools(mcp):
         arrow_tip_y = arrow_end_y
         arr_pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [arrow_x, arrow_tip_y, 0,
-             arrow_x - aw, arrow_tip_y - ah, 0,
-             arrow_x + aw, arrow_tip_y - ah, 0,
-             arrow_x, arrow_tip_y, 0]
+            [arrow_x, arrow_tip_y,
+             arrow_x - aw, arrow_tip_y - ah,
+             arrow_x + aw, arrow_tip_y - ah,
+             arrow_x, arrow_tip_y]
         )
         arrowhead = space.AddLightWeightPolyline(arr_pts)
         arrowhead.Closed = True

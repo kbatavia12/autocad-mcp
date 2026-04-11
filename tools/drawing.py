@@ -55,7 +55,7 @@ def register_drawing_tools(mcp):
         space = get_model_space()
         pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [x1, y1, 0, x2, y1, 0, x2, y2, 0, x1, y2, 0, x1, y1, 0],
+            [x1, y1, x2, y1, x2, y2, x1, y2, x1, y1],
         )
         pline = space.AddLightWeightPolyline(pts)
         pline.Closed = True
@@ -165,11 +165,11 @@ def register_drawing_tools(mcp):
         # Create a bounding rectangle first
         pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [boundary_x1, boundary_y1, 0,
-             boundary_x2, boundary_y1, 0,
-             boundary_x2, boundary_y2, 0,
-             boundary_x1, boundary_y2, 0,
-             boundary_x1, boundary_y1, 0],
+            [boundary_x1, boundary_y1,
+             boundary_x2, boundary_y1,
+             boundary_x2, boundary_y2,
+             boundary_x1, boundary_y2,
+             boundary_x1, boundary_y1],
         )
         pline = space.AddLightWeightPolyline(pts)
         pline.Closed = True

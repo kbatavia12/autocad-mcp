@@ -430,9 +430,9 @@ def register_image_tools(mcp):
                 # Draw a placeholder box if image fails
                 pts = win32com.client.VARIANT(
                     pythoncom.VT_ARRAY | pythoncom.VT_R8,
-                    [ix, iy, 0, ix + cell_width, iy, 0,
-                     ix + cell_width, iy + cell_height, 0,
-                     ix, iy + cell_height, 0, ix, iy, 0]
+                    [ix, iy, ix + cell_width, iy,
+                     ix + cell_width, iy + cell_height,
+                     ix, iy + cell_height, ix, iy]
                 )
                 box = space.AddLightWeightPolyline(pts)
                 box.Closed = True
@@ -504,9 +504,9 @@ def register_image_tools(mcp):
         # Board background border
         border_pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [x, y, 0, x + board_width, y, 0,
-             x + board_width, y + board_height, 0,
-             x, y + board_height, 0, x, y, 0]
+            [x, y, x + board_width, y,
+             x + board_width, y + board_height,
+             x, y + board_height, x, y]
         )
         border = space.AddLightWeightPolyline(border_pts)
         border.Closed = True

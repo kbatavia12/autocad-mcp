@@ -93,10 +93,10 @@ def register_interior_space_tools(mcp):
 
         pts = win32com.client.VARIANT(
             pythoncom.VT_ARRAY | pythoncom.VT_R8,
-            [x1, y1, 0,
-             x2, y2, 0,
-             x2 + nx, y2 + ny, 0,
-             x1 + nx, y1 + ny, 0,
+            [x1, y1,
+             x2, y2,
+             x2 + nx, y2 + ny,
+             x1 + nx, y1 + ny,
              x1, y1, 0]
         )
         wall = space.AddLightWeightPolyline(pts)
@@ -150,7 +150,7 @@ def register_interior_space_tools(mcp):
             space = doc.ModelSpace
             pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
-                [wx1, wy1, 0, wx2, wy1, 0, wx2, wy2, 0, wx1, wy2, 0, wx1, wy1, 0]
+                [wx1, wy1, wx2, wy1, wx2, wy2, wx1, wy2, wx1, wy1]
             )
             wall = space.AddLightWeightPolyline(pts)
             wall.Closed = True
@@ -303,12 +303,12 @@ def register_interior_space_tools(mcp):
             sy = y + offset * math.sin(angle)
             pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
-                [sx, sy, 0,
-                 sx + leaf * math.cos(angle), sy + leaf * math.sin(angle), 0,
+                [sx, sy,
+                 sx + leaf * math.cos(angle), sy + leaf * math.sin(angle),
                  sx + leaf * math.cos(angle) + perp_x,
-                 sy + leaf * math.sin(angle) + perp_y, 0,
-                 sx + perp_x, sy + perp_y, 0,
-                 sx, sy, 0]
+                 sy + leaf * math.sin(angle) + perp_y,
+                 sx + perp_x, sy + perp_y,
+                 sx, sy]
             )
             rect = space.AddLightWeightPolyline(pts)
             rect.Closed = True

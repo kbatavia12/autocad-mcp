@@ -22,7 +22,7 @@ def _rect(space, x, y, w, h, angle_deg=0.0, layer="A-FURN"):
     for cx, cy in corners:
         rx = x + cx * cos_a - cy * sin_a
         ry = y + cx * sin_a + cy * cos_a
-        flat += [rx, ry, 0]
+        flat += [rx, ry]
 
     pts = win32com.client.VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_R8, flat)
     obj = space.AddLightWeightPolyline(pts)
@@ -416,9 +416,9 @@ def register_furniture_tools(mcp):
             # L-shaped worktop corner
             corner_pts = win32com.client.VARIANT(
                 pythoncom.VT_ARRAY | pythoncom.VT_R8,
-                [x, y, 0, x + width, y, 0, x + width, y + depth / 2, 0,
-                 x + width / 2, y + depth / 2, 0, x + width / 2, y + depth, 0,
-                 x, y + depth, 0, x, y, 0]
+                [x, y, x + width, y, x + width, y + depth / 2,
+                 x + width / 2, y + depth / 2, x + width / 2, y + depth,
+                 x, y + depth, x, y]
             )
             corner_shape = space.AddLightWeightPolyline(corner_pts)
             corner_shape.Closed = True
