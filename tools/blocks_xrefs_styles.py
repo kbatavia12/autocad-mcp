@@ -277,16 +277,22 @@ def register_blocks_xrefs_styles_tools(mcp):
     def list_dim_styles() -> list[dict]:
         """List all dimension styles in the active drawing."""
         doc = get_active_doc()
-        return [
-            {
-                "name": s.Name,
-                "scale": s.OverallScale,
-                "text_height": s.TextHeight,
-                "arrow_size": s.ArrowheadSize,
-                "units": s.LinearUnitFormat,
-            }
-            for s in doc.DimStyles
-        ]
+        saved = doc.ActiveDimStyle
+        result = []
+        for s in doc.DimStyles:
+            try:
+                doc.ActiveDimStyle = s
+                result.append({
+                    "name": s.Name,
+                    "scale": doc.GetVariable("DIMSCALE"),
+                    "text_height": doc.GetVariable("DIMTXT"),
+                    "arrow_size": doc.GetVariable("DIMASZ"),
+                    "units": doc.GetVariable("DIMLUNIT"),
+                })
+            except Exception:
+                result.append({"name": s.Name})
+        doc.ActiveDimStyle = saved
+        return result
 
     @mcp.tool()
     def create_dim_style(
@@ -302,10 +308,11 @@ def register_blocks_xrefs_styles_tools(mcp):
         """
         doc = get_active_doc()
         style = doc.DimStyles.Add(name)
-        style.OverallScale = float(scale)
-        style.TextHeight = float(text_height)
-        style.ArrowheadSize = float(arrow_size)
-        style.LinearUnitFormat = int(linear_units)
+        doc.ActiveDimStyle = style
+        doc.SetVariable("DIMSCALE", float(scale))
+        doc.SetVariable("DIMTXT", float(text_height))
+        doc.SetVariable("DIMASZ", float(arrow_size))
+        doc.SetVariable("DIMLUNIT", int(linear_units))
         return f"Dimension style '{name}' created"
 
     @mcp.tool()

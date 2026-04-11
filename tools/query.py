@@ -4,7 +4,7 @@ Tools for inspecting and querying AutoCAD drawings and their contents.
 """
 
 import math
-from autocad_helpers import get_acad, get_active_doc, get_model_space
+from autocad_helpers import get_acad, get_active_doc, get_model_space, point
 
 
 def register_query_tools(mcp):
@@ -221,9 +221,9 @@ def register_query_tools(mcp):
         """Add a horizontal/vertical aligned linear dimension between two points."""
         space = get_model_space()
         dim = space.AddDimAligned(
-            [x1, y1, 0.0],
-            [x2, y2, 0.0],
-            [text_x, text_y, 0.0]
+            point(x1, y1),
+            point(x2, y2),
+            point(text_x, text_y)
         )
         if layer:
             dim.Layer = layer

@@ -58,3 +58,25 @@ def ensure_layer(doc, name: str, color: int = 7) -> str:
         layer = doc.Layers.Add(name)
         layer.color = color
     return name
+
+
+_standard_linetypes_loaded = False
+
+
+def ensure_standard_linetypes(doc) -> None:
+    """Load standard linetypes (DASHED, CENTER, DASHDOT, PHANTOM, HIDDEN) if not loaded."""
+    global _standard_linetypes_loaded
+    if _standard_linetypes_loaded:
+        return
+    for lt in ("DASHED", "CENTER", "DASHDOT", "PHANTOM", "HIDDEN"):
+        try:
+            doc.Linetypes.Item(lt)
+        except Exception:
+            try:
+                doc.Linetypes.Load(lt, "acad.lin")
+            except Exception:
+                try:
+                    doc.Linetypes.Load(lt, "acadiso.lin")
+                except Exception:
+                    pass
+    _standard_linetypes_loaded = True

@@ -7,7 +7,7 @@ All dimensions assumed in millimetres (standard ID practice).
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, ensure_layer, point
+from autocad_helpers import get_active_doc, ensure_layer, ensure_standard_linetypes, point
 
 
 def register_interior_space_tools(mcp):
@@ -211,6 +211,8 @@ def register_interior_space_tools(mcp):
         swing_direction: 'left' or 'right' (which side the hinge is on).
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         angle = math.radians(rotation_deg)
         sw = 1.0 if swing_direction.lower() == "right" else -1.0
@@ -254,6 +256,8 @@ def register_interior_space_tools(mcp):
         mid_y = y + leaf * math.sin(angle)
 
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -386,6 +390,8 @@ def register_interior_space_tools(mcp):
         Used for archways, pass-throughs, and open plan transitions.
         """
         doc = get_active_doc()
+        ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         angle = math.radians(rotation_deg)
         ex = x + width * math.cos(angle)

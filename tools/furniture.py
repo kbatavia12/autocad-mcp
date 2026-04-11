@@ -8,7 +8,7 @@ All dimensions in mm. Symbols follow standard ID plan conventions.
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, ensure_layer, point
+from autocad_helpers import get_active_doc, ensure_layer, ensure_standard_linetypes, point
 
 
 def _rect(space, x, y, w, h, angle_deg=0.0, layer="A-FURN"):
@@ -599,6 +599,7 @@ def register_furniture_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 

@@ -19,7 +19,7 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, ensure_layer, get_model_space, point
+from autocad_helpers import get_active_doc, ensure_layer, ensure_standard_linetypes, get_model_space, point
 
 
 def _var(coords):
@@ -184,6 +184,7 @@ def register_mep_services_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
 
         linetypes = {
@@ -322,6 +323,7 @@ def register_mep_services_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
         r = 80
@@ -426,6 +428,7 @@ def register_mep_services_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
 
         config = {
@@ -477,6 +480,7 @@ def register_mep_services_tools(mcp):
         doc = get_active_doc()
         ensure_layer(doc, layer)
         ensure_layer(doc, "A-WALL")
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
         ox, oy = origin_x, origin_y
@@ -729,6 +733,7 @@ def register_mep_services_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
         hw = duct_width / 2

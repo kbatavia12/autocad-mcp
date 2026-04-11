@@ -16,7 +16,7 @@ Advanced interior design tools:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, point
+from autocad_helpers import get_active_doc, ensure_layer, point
 
 
 def _rect(space, x, y, w, h, layer, lw=18):
@@ -447,19 +447,20 @@ def register_interior_advanced_tools(mcp):
             handles.append(lbl.Handle)
 
         # Dimension: ceiling height
+        ensure_layer(doc, "A-DIMS")
         dim = space.AddDimAligned(
-            [x - wall_width * 0.12, y, 0.0],
-            [x - wall_width * 0.12, y + floor_to_ceiling, 0.0],
-            [x - wall_width * 0.18, y + floor_to_ceiling / 2, 0.0]
+            point(x - wall_width * 0.12, y),
+            point(x - wall_width * 0.12, y + floor_to_ceiling),
+            point(x - wall_width * 0.18, y + floor_to_ceiling / 2)
         )
         dim.Layer = "A-DIMS"
         handles.append(dim.Handle)
 
         # Dimension: wall width
         dim2 = space.AddDimAligned(
-            [x, y - floor_to_ceiling * 0.08, 0.0],
-            [x + wall_width, y - floor_to_ceiling * 0.08, 0.0],
-            [x + wall_width / 2, y - floor_to_ceiling * 0.14, 0.0]
+            point(x, y - floor_to_ceiling * 0.08),
+            point(x + wall_width, y - floor_to_ceiling * 0.08),
+            point(x + wall_width / 2, y - floor_to_ceiling * 0.14)
         )
         dim2.Layer = "A-DIMS"
         handles.append(dim2.Handle)
@@ -510,10 +511,11 @@ def register_interior_advanced_tools(mcp):
         handles.append(sill.Handle)
 
         # Dimension
+        ensure_layer(doc, "A-DIMS")
         dim = space.AddDimAligned(
-            [wx, elevation_y, 0.0],
-            [wx, wy, 0.0],
-            [wx - window_width * 0.3, elevation_y + sill_height / 2, 0.0]
+            point(wx, elevation_y),
+            point(wx, wy),
+            point(wx - window_width * 0.3, elevation_y + sill_height / 2)
         )
         dim.Layer = "A-DIMS"
         handles.append(dim.Handle)

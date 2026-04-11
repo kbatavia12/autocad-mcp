@@ -352,7 +352,7 @@ def register_schedule_tools(mcp):
                  x + swatch_size, row_y,
                  x + swatch_size, row_y - swatch_size,
                  x, row_y - swatch_size,
-                 x, row_y, 0]
+                 x, row_y]
             )
             box = space.AddLightWeightPolyline(pts)
             box.Closed = True

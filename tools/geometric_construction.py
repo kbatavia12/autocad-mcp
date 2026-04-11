@@ -17,7 +17,7 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, ensure_layer, get_model_space, point
+from autocad_helpers import get_active_doc, ensure_layer, ensure_standard_linetypes, get_model_space, point
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +84,7 @@ def register_geometric_construction_tools(mcp):
 
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
 
         r = radius if method == "circumscribed" else radius / math.cos(math.pi / sides)
@@ -173,6 +174,7 @@ def register_geometric_construction_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -250,6 +252,7 @@ def register_geometric_construction_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
 
         W, H, G = view_width, view_height, gap
@@ -319,6 +322,7 @@ def register_geometric_construction_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
 
         angle = math.atan2(y2 - y1, x2 - x1)
@@ -482,6 +486,7 @@ def register_geometric_construction_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
 
         phi = (1 + math.sqrt(5)) / 2
@@ -571,6 +576,7 @@ def register_geometric_construction_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -643,6 +649,7 @@ def register_geometric_construction_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -722,6 +729,7 @@ def register_geometric_construction_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 

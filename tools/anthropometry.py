@@ -17,7 +17,7 @@ Covers:
 import math
 import pythoncom
 import win32com.client
-from autocad_helpers import get_active_doc, ensure_layer, get_model_space, point
+from autocad_helpers import get_active_doc, ensure_layer, ensure_standard_linetypes, get_model_space, point
 
 
 def _var(coords):
@@ -234,6 +234,7 @@ def register_anthropometry_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -295,6 +296,7 @@ def register_anthropometry_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -359,6 +361,7 @@ def register_anthropometry_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
@@ -404,6 +407,7 @@ def register_anthropometry_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
 
         widths = {
@@ -754,6 +758,7 @@ def register_anthropometry_tools(mcp):
         """
         doc = get_active_doc()
         ensure_layer(doc, layer)
+        ensure_standard_linetypes(doc)
         space = doc.ModelSpace
         handles = []
 
