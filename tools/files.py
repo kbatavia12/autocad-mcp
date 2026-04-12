@@ -3,7 +3,7 @@ tools/files.py
 Tools for file operations and viewport/view control in AutoCAD.
 """
 
-from autocad_helpers import get_acad, get_active_doc
+from autocad_helpers import get_acad, get_active_doc, point
 
 
 def register_file_tools(mcp):
@@ -88,22 +88,22 @@ def register_file_tools(mcp):
     @mcp.tool()
     def zoom_extents() -> str:
         """Zoom to fit all objects in the active viewport."""
-        doc = get_active_doc()
-        doc.SendCommand("_ZOOM\nE\n")
+        acad = get_acad()
+        acad.ZoomExtents()
         return "Zoomed to extents"
 
     @mcp.tool()
     def zoom_window(x1: float, y1: float, x2: float, y2: float) -> str:
         """Zoom to a specified rectangular window in model space."""
-        doc = get_active_doc()
-        doc.SendCommand(f"_ZOOM\nW\n{x1},{y1}\n{x2},{y2}\n")
+        acad = get_acad()
+        acad.ZoomWindow(point(float(x1), float(y1)), point(float(x2), float(y2)))
         return f"Zoomed to window ({x1},{y1}) – ({x2},{y2})"
 
     @mcp.tool()
     def zoom_scale(factor: float) -> str:
         """Zoom in or out by a scale factor relative to the current view (e.g. 2.0 = 2x in)."""
-        doc = get_active_doc()
-        doc.SendCommand(f"_ZOOM\n{factor}X\n")
+        acad = get_acad()
+        acad.ZoomScaled(float(factor), 2)  # 2 = acZoomScaledRelative
         return f"Zoomed by scale factor {factor}"
 
     @mcp.tool()
@@ -112,8 +112,8 @@ def register_file_tools(mcp):
         Set the active viewport center and view height (controls zoom level).
         height is the vertical span of the view in drawing units.
         """
-        doc = get_active_doc()
-        doc.SendCommand(f"_ZOOM\nC\n{float(cx)},{float(cy)}\n{float(height)}\n")
+        acad = get_acad()
+        acad.ZoomCenter(point(float(cx), float(cy)), float(height))
         return f"View centered at ({cx}, {cy}) with height={height}"
 
     @mcp.tool()

@@ -11,7 +11,7 @@ import time
 
 from mcp.server.fastmcp import Image
 
-from autocad_helpers import get_active_doc
+from autocad_helpers import get_acad, get_active_doc, point
 
 
 # ---------------------------------------------------------------------------
@@ -82,8 +82,8 @@ def _restore_view(doc, state: dict) -> None:
     """Restore a viewport snapshot saved with _save_view()."""
     cx, cy = float(state["center"][0]), float(state["center"][1])
     height = float(state["height"])
-    doc.SendCommand(f"_ZOOM\nC\n{cx},{cy}\n{height}\n")
-    time.sleep(0.3)
+    acad = get_acad()
+    acad.ZoomCenter(point(cx, cy), height)
 
 
 def _view_metadata(doc) -> dict:
@@ -143,8 +143,8 @@ def register_screenshot_tools(mcp):
 
         saved = _save_view(doc)
         try:
-            doc.SendCommand("_ZOOM\nE\n")
-            time.sleep(0.5)   # let the async zoom command execute
+            acad = get_acad()
+            acad.ZoomExtents()
             meta = _view_metadata(doc)
             meta["capture_type"] = "extents"
             png_bytes = _capture_viewport(doc)
@@ -190,8 +190,8 @@ def register_screenshot_tools(mcp):
 
         saved = _save_view(doc)
         try:
-            doc.SendCommand(f"_ZOOM\nW\n{px1},{py1}\n{px2},{py2}\n")
-            time.sleep(0.5)   # let the async zoom command execute
+            acad = get_acad()
+            acad.ZoomWindow(point(px1, py1), point(px2, py2))
             meta = _view_metadata(doc)
             meta["capture_type"] = "region"
             meta["region"] = {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
