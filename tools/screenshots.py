@@ -11,7 +11,7 @@ import time
 
 from mcp.server.fastmcp import Image
 
-from autocad_helpers import get_acad, get_active_doc, point
+from autocad_helpers import get_acad, get_active_doc, point, wait_for_idle
 
 
 # ---------------------------------------------------------------------------
@@ -46,26 +46,32 @@ def _capture_viewport(doc, timeout: float = 30.0) -> bytes:
     """
     temp_dir = tempfile.mkdtemp(prefix="acad_cap_")
     file_path = os.path.join(temp_dir, "capture.png")
-
     file_path_acad = file_path.replace("\\", "/")
 
-    old_filedia = doc.GetVariable("FILEDIA")
     try:
-        doc.SetVariable("FILEDIA", 0)   # suppress file-picker dialog
-        # Cancel any leftover command, then PNGOUT
-        # Prompt order: select objects (Enter=all), filename, viewport (Enter=current)
-        doc.SendCommand("(command)\n")
-        time.sleep(0.2)
-        doc.SendCommand(f"_-PNGOUT\n\n{file_path_acad}\n\n")
+        # Wait for AutoCAD to be idle, then fire PNGOUT via a single LISP
+        # expression. The while loop inside LISP presses Enter for every
+        # prompt PNGOUT shows (object selection, viewport, etc.) regardless
+        # of version, so no manual prompt-order guessing is needed.
+        wait_for_idle(doc)
+        lisp = (
+            '(progn'
+            ' (setvar "FILEDIA" 0)'
+            f' (command "_.PNGOUT" "{file_path_acad}")'
+            ' (while (> (getvar "CMDACTIVE") 0) (command ""))'
+            ' (setvar "FILEDIA" 1)'
+            ' (princ))'
+            '\n'
+        )
+        doc.SendCommand(lisp)
         if not _wait_for_file(file_path, timeout):
             raise RuntimeError(
                 f"Screenshot timed out after {timeout}s — "
-                "AutoCAD may be busy or -PNGOUT is not available in this version."
+                "AutoCAD may be busy or PNGOUT is not available in this version."
             )
         with open(file_path, "rb") as fh:
             return fh.read()
     finally:
-        doc.SetVariable("FILEDIA", old_filedia)
         try:
             if os.path.exists(file_path):
                 os.remove(file_path)
@@ -141,6 +147,7 @@ def register_screenshot_tools(mcp):
         Returns the image plus a JSON string with view metadata.
         """
         doc = get_active_doc()
+        wait_for_idle(doc)
         if doc.ModelSpace.Count == 0:
             raise RuntimeError("Model space is empty — nothing to zoom to.")
 
@@ -184,6 +191,7 @@ def register_screenshot_tools(mcp):
             )
 
         doc = get_active_doc()
+        wait_for_idle(doc)
 
         # Apply padding
         pad_x = (x2 - x1) * padding_pct / 100.0

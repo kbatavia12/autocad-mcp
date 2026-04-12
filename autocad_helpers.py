@@ -3,6 +3,8 @@ autocad_helpers.py
 Shared utilities for COM/ActiveX interaction with AutoCAD.
 """
 
+import time
+
 import pythoncom
 import win32com.client
 from typing import Tuple
@@ -11,12 +13,31 @@ from typing import Tuple
 def get_acad() -> win32com.client.CDispatch:
     """Get a reference to the running AutoCAD application. Raises if not open."""
     pythoncom.CoInitialize()
-    try:
-        return win32com.client.GetActiveObject("AutoCAD.Application")
-    except Exception:
-        raise RuntimeError(
-            "AutoCAD is not running. Please open AutoCAD before using this MCP."
-        )
+    for attempt in range(5):
+        try:
+            return win32com.client.GetActiveObject("AutoCAD.Application")
+        except Exception as e:
+            if "rejected" in str(e).lower() and attempt < 4:
+                time.sleep(0.5 * (attempt + 1))
+                continue
+            if "rejected" in str(e).lower():
+                raise RuntimeError("AutoCAD is busy and not responding.")
+            raise RuntimeError(
+                "AutoCAD is not running. Please open AutoCAD before using this MCP."
+            )
+
+
+def wait_for_idle(doc, timeout: float = 10.0) -> None:
+    """Poll CMDACTIVE until AutoCAD's command line is idle."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            if doc.GetVariable("CMDACTIVE") == 0:
+                return
+        except Exception:
+            pass  # COM might be momentarily busy — keep polling
+        time.sleep(0.2)
+    raise RuntimeError(f"AutoCAD still busy after {timeout}s")
 
 
 def get_model_space():
