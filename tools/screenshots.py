@@ -46,16 +46,14 @@ def _capture_viewport(doc, timeout: float = 30.0) -> bytes:
     """
     temp_dir = tempfile.mkdtemp(prefix="acad_cap_")
     file_path = os.path.join(temp_dir, "capture.png")
-    # AutoCAD accepts forward slashes on Windows
-    file_path_acad = file_path.replace("\\", "/")
 
     old_filedia = doc.GetVariable("FILEDIA")
     try:
         doc.SetVariable("FILEDIA", 0)   # suppress file-picker dialog
         # Cancel any pending command, then export
-        doc.SendCommand("\x1b\x1b")
+        doc.SendCommand("\x03\x03")
         time.sleep(0.3)
-        doc.SendCommand(f"_-PNGOUT\n{file_path_acad}\n")
+        doc.SendCommand(f'_-PNGOUT\n"{file_path}"\n')
         if not _wait_for_file(file_path, timeout):
             raise RuntimeError(
                 f"Screenshot timed out after {timeout}s — "
