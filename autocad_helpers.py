@@ -10,6 +10,7 @@ from typing import Tuple
 
 def get_acad() -> win32com.client.CDispatch:
     """Get a reference to the running AutoCAD application. Raises if not open."""
+    pythoncom.CoInitialize()
     try:
         return win32com.client.GetActiveObject("AutoCAD.Application")
     except Exception:
