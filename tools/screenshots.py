@@ -52,7 +52,8 @@ def _capture_viewport(doc, timeout: float = 30.0) -> bytes:
     old_filedia = doc.GetVariable("FILEDIA")
     try:
         doc.SetVariable("FILEDIA", 0)   # suppress file-picker dialog
-        doc.SendCommand(f'(command "_.PNGOUT" "{file_path_acad}")\n')
+        # PNGOUT prompts: filename, select objects (Enter=all), viewports (Enter=current)
+        doc.SendCommand(f"_-PNGOUT\n{file_path_acad}\n\n\n")
         if not _wait_for_file(file_path, timeout):
             raise RuntimeError(
                 f"Screenshot timed out after {timeout}s — "
