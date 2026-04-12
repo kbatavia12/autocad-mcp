@@ -39,7 +39,7 @@ def _wait_for_file(path: str, timeout: float = 10.0, poll_interval: float = 0.25
     return False
 
 
-def _capture_viewport(doc, timeout: float = 10.0) -> bytes:
+def _capture_viewport(doc, timeout: float = 30.0) -> bytes:
     """
     Export the current model-space viewport as a PNG into a temp file,
     read the bytes, and clean up.  Returns raw PNG bytes.
@@ -52,6 +52,9 @@ def _capture_viewport(doc, timeout: float = 10.0) -> bytes:
     old_filedia = doc.GetVariable("FILEDIA")
     try:
         doc.SetVariable("FILEDIA", 0)   # suppress file-picker dialog
+        # Cancel any pending command, then export
+        doc.SendCommand("\x1b\x1b")
+        time.sleep(0.3)
         doc.SendCommand(f"_-PNGOUT\n{file_path_acad}\n")
         if not _wait_for_file(file_path, timeout):
             raise RuntimeError(
