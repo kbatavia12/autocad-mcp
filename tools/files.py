@@ -4,8 +4,6 @@ Tools for file operations and viewport/view control in AutoCAD.
 """
 
 from autocad_helpers import get_acad, get_active_doc
-import win32com.client
-import pythoncom
 
 
 def register_file_tools(mcp):
@@ -115,12 +113,7 @@ def register_file_tools(mcp):
         height is the vertical span of the view in drawing units.
         """
         doc = get_active_doc()
-        vp = doc.ActiveViewport
-        vp.Center = win32com.client.VARIANT(
-            pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(cx), float(cy)]
-        )
-        vp.Height = float(height)
-        doc.ActiveViewport = vp
+        doc.SendCommand(f"_ZOOM\nC\n{float(cx)},{float(cy)}\n{float(height)}\n")
         return f"View centered at ({cx}, {cy}) with height={height}"
 
     @mcp.tool()

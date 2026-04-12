@@ -9,8 +9,6 @@ import os
 import tempfile
 import time
 
-import pythoncom
-import win32com.client
 from mcp.server.fastmcp import Image
 
 from autocad_helpers import get_active_doc
@@ -74,33 +72,30 @@ def _capture_viewport(doc, timeout: float = 10.0) -> bytes:
 
 def _save_view(doc) -> dict:
     """Return a snapshot of the active viewport's center and height."""
-    vp = doc.ActiveViewport
-    return {
-        "center": tuple(vp.Center),
-        "height": float(vp.Height),
-    }
+    center = tuple(doc.GetVariable("VIEWCTR"))
+    height = float(doc.GetVariable("VIEWSIZE"))
+    return {"center": center, "height": height}
 
 
 def _restore_view(doc, state: dict) -> None:
     """Restore a viewport snapshot saved with _save_view()."""
-    vp = doc.ActiveViewport
     cx, cy = float(state["center"][0]), float(state["center"][1])
-    vp.Center = win32com.client.VARIANT(
-        pythoncom.VT_ARRAY | pythoncom.VT_R8, [cx, cy]
-    )
-    vp.Height = float(state["height"])
-    doc.ActiveViewport = vp
+    height = float(state["height"])
+    doc.SendCommand(f"_ZOOM\nC\n{cx},{cy}\n{height}\n")
+    time.sleep(0.3)
 
 
 def _view_metadata(doc) -> dict:
     """Collect the current viewport's spatial state as a plain dict."""
-    vp = doc.ActiveViewport
-    center = tuple(vp.Center)
+    center = tuple(doc.GetVariable("VIEWCTR"))
+    height = float(doc.GetVariable("VIEWSIZE"))
+    screen = tuple(doc.GetVariable("SCREENSIZE"))
+    width = height * (screen[0] / screen[1]) if screen[1] != 0 else height
     return {
         "view_center_x": round(center[0], 1),
         "view_center_y": round(center[1], 1),
-        "view_height": round(float(vp.Height), 1),
-        "view_width": round(float(vp.Width), 1),
+        "view_height": round(height, 1),
+        "view_width": round(width, 1),
     }
 
 
