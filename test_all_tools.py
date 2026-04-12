@@ -51,6 +51,7 @@ from tools.geometric_construction import register_geometric_construction_tools
 from tools.anthropometry         import register_anthropometry_tools
 from tools.mep_services          import register_mep_services_tools
 from tools.tile_design           import register_tile_design_tools
+from tools.screenshots           import register_screenshot_tools
 
 register_drawing_tools(mcp)
 register_layer_tools(mcp)
@@ -71,6 +72,7 @@ register_geometric_construction_tools(mcp)
 register_anthropometry_tools(mcp)
 register_mep_services_tools(mcp)
 register_tile_design_tools(mcp)
+register_screenshot_tools(mcp)
 
 
 # ---------------------------------------------------------------------------
@@ -302,6 +304,10 @@ TESTS = [
                                                 "w":2500,"h":4000,
                                                 "pattern":"herringbone",
                                                 "tile_w":300,"tile_h":300}])),
+    # ── screenshots ───────────────────────────────────────────────────────────
+    ("screenshot_current_view",   dict()),
+    ("screenshot_extents",        dict()),
+    ("screenshot_region",         dict(x1=0, y1=0, x2=3000, y2=3000)),
 ]
 
 

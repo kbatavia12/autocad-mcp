@@ -36,6 +36,9 @@ from tools.anthropometry import register_anthropometry_tools
 from tools.mep_services import register_mep_services_tools
 from tools.tile_design import register_tile_design_tools
 
+# Visual feedback
+from tools.screenshots import register_screenshot_tools
+
 # ---------------------------------------------------------------------------
 # Create the MCP server
 # ---------------------------------------------------------------------------
@@ -71,6 +74,9 @@ register_geometric_construction_tools(mcp)
 register_anthropometry_tools(mcp)
 register_mep_services_tools(mcp)
 register_tile_design_tools(mcp)
+
+# Visual feedback
+register_screenshot_tools(mcp)
 
 # ---------------------------------------------------------------------------
 # Run
