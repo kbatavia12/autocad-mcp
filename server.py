@@ -7,6 +7,8 @@ Requires AutoCAD to be open on Windows with COM/ActiveX enabled.
 Run with: python server.py
 """
 
+from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
 
 # Core CAD tools
@@ -22,16 +24,12 @@ from tools.blocks_xrefs_styles import register_blocks_xrefs_styles_tools
 from tools.arrays import register_array_tools
 
 # Interior design specific tools
-from tools.interior_spaces import register_interior_space_tools
-from tools.furniture import register_furniture_tools
 from tools.schedules import register_schedule_tools
 from tools.id_annotations import register_id_annotation_tools
-from tools.interior_advanced import register_interior_advanced_tools
 from tools.match_properties import register_match_properties_tools
 from tools.images import register_image_tools
 
 # Curriculum-driven tools (B.Des Interior Design 2025 Pattern)
-from tools.geometric_construction import register_geometric_construction_tools
 from tools.anthropometry import register_anthropometry_tools
 from tools.mep_services import register_mep_services_tools
 from tools.tile_design import register_tile_design_tools
@@ -42,7 +40,8 @@ from tools.screenshots import register_screenshot_tools
 # ---------------------------------------------------------------------------
 # Create the MCP server
 # ---------------------------------------------------------------------------
-mcp = FastMCP("autocad-id")
+_system_prompt = (Path(__file__).parent / "system_prompt.md").read_text()
+mcp = FastMCP("autocad-id", instructions=_system_prompt)
 
 # ---------------------------------------------------------------------------
 # Register all tool groups
@@ -61,16 +60,12 @@ register_blocks_xrefs_styles_tools(mcp)
 register_array_tools(mcp)
 
 # Interior Design
-register_interior_space_tools(mcp)
-register_furniture_tools(mcp)
 register_schedule_tools(mcp)
 register_id_annotation_tools(mcp)
-register_interior_advanced_tools(mcp)
 register_match_properties_tools(mcp)
 register_image_tools(mcp)
 
 # Curriculum-driven tools
-register_geometric_construction_tools(mcp)
 register_anthropometry_tools(mcp)
 register_mep_services_tools(mcp)
 register_tile_design_tools(mcp)

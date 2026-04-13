@@ -7,6 +7,72 @@ import math
 from autocad_helpers import get_acad, get_active_doc, get_model_space, point
 
 
+def _region_objects(space, x1, y1, x2, y2, layer_filter=None, type_filter=None):
+    """Return COM objects whose bounding boxes overlap the given region."""
+    result = []
+    lf = [l.upper() for l in layer_filter] if layer_filter else None
+    for i in range(space.Count):
+        obj = space.Item(i)
+        try:
+            mn, mx = obj.GetBoundingBox()
+            if mx[0] >= x1 and mn[0] <= x2 and mx[1] >= y1 and mn[1] <= y2:
+                if lf and obj.Layer.upper() not in lf:
+                    continue
+                if type_filter and obj.ObjectName not in type_filter:
+                    continue
+                result.append(obj)
+        except Exception:
+            pass
+    return result
+
+
+def _bbox_info(obj):
+    """Return bounding box fields for an entity dict."""
+    try:
+        mn, mx = obj.GetBoundingBox()
+        cx = (mn[0] + mx[0]) / 2
+        cy = (mn[1] + mx[1]) / 2
+        return {
+            "center_x": round(cx, 3),
+            "center_y": round(cy, 3),
+            "width": round(mx[0] - mn[0], 3),
+            "height": round(mx[1] - mn[1], 3),
+        }
+    except Exception:
+        return {"center_x": None, "center_y": None, "width": None, "height": None}
+
+
+def _describe_entity(obj):
+    """Return a human-readable description string for an entity."""
+    t = obj.ObjectName
+    try:
+        if t == "AcDbLine":
+            sp = list(obj.StartPoint)
+            ep = list(obj.EndPoint)
+            length = round(obj.Length, 2)
+            return (f"Line from ({round(sp[0],1)},{round(sp[1],1)}) "
+                    f"to ({round(ep[0],1)},{round(ep[1],1)}), length={length}")
+        if t == "AcDbCircle":
+            c = list(obj.Center)
+            return f"Circle, radius={round(obj.Radius,2)}, center=({round(c[0],1)},{round(c[1],1)})"
+        if t == "AcDbArc":
+            return f"Arc, radius={round(obj.Radius,2)}"
+        if t == "AcDbLwPolyline":
+            bb = _bbox_info(obj)
+            return f"Polyline, {bb['width']}×{bb['height']}"
+        if t in ("AcDbText", "AcDbMText"):
+            return f"Text: '{obj.TextString[:60]}'"
+        if t == "AcDbBlockReference":
+            return f"Block: {obj.Name}"
+        if t == "AcDbHatch":
+            return f"Hatch: {obj.PatternName}"
+        if t.startswith("AcDbDim"):
+            return f"Dimension ({t})"
+    except Exception:
+        pass
+    return t
+
+
 def register_query_tools(mcp):
 
     @mcp.tool()
@@ -138,26 +204,204 @@ def register_query_tools(mcp):
 
     @mcp.tool()
     def find_entities_in_region(
-        x1: float, y1: float, x2: float, y2: float
+        x1: float, y1: float, x2: float, y2: float,
+        layer_filter: list[str] = None,
+        type_filter: list[str] = None,
     ) -> list[dict]:
         """
         Return all entities whose bounding boxes overlap the given rectangular region.
+        layer_filter: optional list of layer names to include (case-insensitive).
+        type_filter: optional list of entity types to include (e.g. ['AcDbLine', 'AcDbCircle']).
         """
         space = get_model_space()
-        result = []
-        for i in range(space.Count):
-            obj = space.Item(i)
+        return [
+            {"handle": obj.Handle, "type": obj.ObjectName, "layer": obj.Layer}
+            for obj in _region_objects(space, x1, y1, x2, y2, layer_filter, type_filter)
+        ]
+
+    @mcp.tool()
+    def identify_entity(handle: str) -> dict:
+        """
+        Return type, layer, bounding box, centre, and a human-readable description
+        for a single entity — all in one call.
+        """
+        doc = get_active_doc()
+        obj = doc.HandleToObject(handle)
+        info = {
+            "handle": handle,
+            "type": obj.ObjectName,
+            "layer": obj.Layer,
+        }
+        info.update(_bbox_info(obj))
+        info["description"] = _describe_entity(obj)
+        return info
+
+    @mcp.tool()
+    def batch_get_bounding_box(handles: list[str]) -> list[dict]:
+        """
+        Return bounding box info for multiple entities in one call.
+        Each result includes: handle, min, max, width, height, center_x, center_y.
+        Entities that fail (deleted, no bbox support) are silently skipped.
+        """
+        doc = get_active_doc()
+        results = []
+        for handle in handles:
             try:
+                obj = doc.HandleToObject(handle)
                 mn, mx = obj.GetBoundingBox()
-                if mx[0] >= x1 and mn[0] <= x2 and mx[1] >= y1 and mn[1] <= y2:
-                    result.append({
-                        "handle": obj.Handle,
-                        "type": obj.ObjectName,
-                        "layer": obj.Layer,
-                    })
+                results.append({
+                    "handle": handle,
+                    "min": [round(mn[0], 3), round(mn[1], 3)],
+                    "max": [round(mx[0], 3), round(mx[1], 3)],
+                    "width": round(mx[0] - mn[0], 3),
+                    "height": round(mx[1] - mn[1], 3),
+                    "center_x": round((mn[0] + mx[0]) / 2, 3),
+                    "center_y": round((mn[1] + mx[1]) / 2, 3),
+                })
             except Exception:
                 pass
-        return result
+        return results
+
+    @mcp.tool()
+    def get_room_summary(x1: float, y1: float, x2: float, y2: float) -> dict:
+        """
+        Return a categorised spatial overview of all entities within a region.
+        Each entity is classified into walls / furniture / openings / annotations / other
+        based on its layer name. Returns handle, type, layer, centre, and size for each.
+        Useful for understanding the room layout without taking screenshots.
+        """
+        space = get_model_space()
+        objs = _region_objects(space, x1, y1, x2, y2)
+
+        walls = []
+        furniture = []
+        openings = []
+        annotations = []
+        other = []
+
+        for obj in objs:
+            layer_up = obj.Layer.upper()
+            type_name = obj.ObjectName
+            entry = {"handle": obj.Handle, "type": type_name, "layer": obj.Layer}
+            entry.update(_bbox_info(obj))
+
+            if "WALL" in layer_up:
+                walls.append(entry)
+            elif any(k in layer_up for k in ("FURN", "EQUIP", "CABIN", "FURNITURE")):
+                furniture.append(entry)
+            elif any(k in layer_up for k in ("DOOR", "GLAZ", "WINDOW")):
+                openings.append(entry)
+            elif (any(k in layer_up for k in ("DIM", "TEXT", "ANNO", "NOTE"))
+                  or type_name in ("AcDbText", "AcDbMText")
+                  or type_name.startswith("AcDbDim")):
+                annotations.append(entry)
+            else:
+                other.append(entry)
+
+        return {
+            "walls": walls,
+            "furniture": furniture,
+            "openings": openings,
+            "annotations": annotations,
+            "other": other,
+            "total": len(objs),
+        }
+
+    @mcp.tool()
+    def get_drawing_context() -> dict:
+        """
+        Return everything needed to orient yourself at the start of any task:
+        active layer, drawing units, all layers (name/color/state), all named
+        block definitions, all dimension styles, and all text labels with their
+        positions.  Replaces 10–15 individual orientation calls with 1.
+        """
+        doc = get_active_doc()
+        space = get_model_space()
+
+        # Layers
+        layers = []
+        for i in range(doc.Layers.Count):
+            lyr = doc.Layers.Item(i)
+            layers.append({
+                "name": lyr.Name,
+                "color": lyr.color,
+                "linetype": lyr.Linetype,
+                "on": lyr.LayerOn,
+                "frozen": lyr.Freeze,
+                "locked": lyr.Lock,
+            })
+
+        # Named block definitions (skip *Model_Space, *Paper_Space, etc.)
+        blocks = []
+        for blk in doc.Blocks:
+            if not blk.Name.startswith("*"):
+                blocks.append({"name": blk.Name, "entity_count": blk.Count})
+
+        # Dimension styles
+        dim_styles = [doc.DimStyles.Item(i).Name for i in range(doc.DimStyles.Count)]
+
+        # Text labels (AcDbText + AcDbMText) with insertion points
+        text_labels = []
+        for i in range(space.Count):
+            obj = space.Item(i)
+            if obj.ObjectName not in ("AcDbText", "AcDbMText"):
+                continue
+            try:
+                pt = list(obj.InsertionPoint)
+                text_labels.append({
+                    "text": obj.TextString[:120],
+                    "x": round(pt[0], 2),
+                    "y": round(pt[1], 2),
+                    "layer": obj.Layer,
+                    "type": obj.ObjectName,
+                })
+            except Exception:
+                pass
+            if len(text_labels) >= 300:
+                break
+
+        return {
+            "active_layer": doc.ActiveLayer.Name,
+            "units": doc.GetVariable("INSUNITS"),
+            "entity_count": space.Count,
+            "layers": layers,
+            "blocks": blocks,
+            "dim_styles": dim_styles,
+            "text_labels": text_labels,
+        }
+
+    @mcp.tool()
+    def identify_entities(handles: list[str]) -> list[dict]:
+        """
+        Return type, layer, bounding box, centre, rotation, block name, and a
+        human-readable description for every handle in the list — all in one call.
+        Entities that fail (deleted, unsupported) are returned with status='error'.
+        Replaces N sequential identify_entity calls with 1.
+        """
+        doc = get_active_doc()
+        results = []
+        for handle in handles:
+            entry: dict = {"handle": handle}
+            try:
+                obj = doc.HandleToObject(handle)
+                entry["type"] = obj.ObjectName
+                entry["layer"] = obj.Layer
+                entry.update(_bbox_info(obj))
+                entry["description"] = _describe_entity(obj)
+                try:
+                    entry["rotation_deg"] = round(math.degrees(obj.Rotation), 3)
+                except Exception:
+                    entry["rotation_deg"] = None
+                try:
+                    entry["block_name"] = obj.Name  # block references
+                except Exception:
+                    entry["block_name"] = None
+                entry["status"] = "ok"
+            except Exception as e:
+                entry["status"] = "error"
+                entry["error"] = str(e)
+            results.append(entry)
+        return results
 
     @mcp.tool()
     def list_blocks() -> list[dict]:

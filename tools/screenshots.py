@@ -113,6 +113,29 @@ def _view_metadata(doc) -> dict:
 # Tool registration
 # ---------------------------------------------------------------------------
 
+def _entities_in_region(doc, x1, y1, x2, y2):
+    """Return a lightweight entity list for all objects overlapping the region."""
+    space = doc.ModelSpace
+    result = []
+    for i in range(space.Count):
+        obj = space.Item(i)
+        try:
+            mn, mx = obj.GetBoundingBox()
+            if mx[0] >= x1 and mn[0] <= x2 and mx[1] >= y1 and mn[1] <= y2:
+                result.append({
+                    "handle": obj.Handle,
+                    "type": obj.ObjectName,
+                    "layer": obj.Layer,
+                    "center_x": round((mn[0] + mx[0]) / 2, 2),
+                    "center_y": round((mn[1] + mx[1]) / 2, 2),
+                    "width": round(mx[0] - mn[0], 2),
+                    "height": round(mx[1] - mn[1], 2),
+                })
+        except Exception:
+            pass
+    return result
+
+
 def register_screenshot_tools(mcp):
 
     @mcp.tool()
@@ -206,6 +229,60 @@ def register_screenshot_tools(mcp):
             meta = _view_metadata(doc)
             meta["capture_type"] = "region"
             meta["region"] = {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
+            png_bytes = _capture_viewport(doc)
+        finally:
+            _restore_view(doc, saved)
+
+        return [Image(data=png_bytes, format="png"), json.dumps(meta, indent=2)]
+
+    @mcp.tool()
+    def screenshot_with_context(
+        x1: float, y1: float,
+        x2: float, y2: float,
+        padding_pct: float = 10.0
+    ) -> list:
+        """
+        Zoom to a region, capture a PNG screenshot, AND return a structured list
+        of every entity visible in that region with handle, type, layer, bounding
+        box, and centre — all in a single call.
+
+        Eliminates the "what am I looking at" phase: instead of screenshot +
+        find_entities_in_region + identify_entities (3 round trips), this is 1.
+
+        x1, y1: lower-left corner (drawing units, typically mm).
+        x2, y2: upper-right corner.
+        padding_pct: whitespace added around the region (default 10 %).
+
+        Returns the image plus a JSON string containing view metadata and the
+        entity list.
+        """
+        if x2 <= x1 or y2 <= y1:
+            raise ValueError(
+                f"Invalid region: x2 ({x2}) must be > x1 ({x1}) and "
+                f"y2 ({y2}) must be > y1 ({y1})."
+            )
+
+        doc = get_active_doc()
+        wait_for_idle(doc)
+
+        # Collect entity context before zooming (model coords unchanged)
+        entities = _entities_in_region(doc, x1, y1, x2, y2)
+
+        # Apply padding
+        pad_x = (x2 - x1) * padding_pct / 100.0
+        pad_y = (y2 - y1) * padding_pct / 100.0
+        px1, py1 = x1 - pad_x, y1 - pad_y
+        px2, py2 = x2 + pad_x, y2 + pad_y
+
+        saved = _save_view(doc)
+        try:
+            acad = get_acad()
+            acad.ZoomWindow(point(px1, py1), point(px2, py2))
+            meta = _view_metadata(doc)
+            meta["capture_type"] = "region_with_context"
+            meta["region"] = {"x1": x1, "y1": y1, "x2": x2, "y2": y2}
+            meta["entities"] = entities
+            meta["entity_count"] = len(entities)
             png_bytes = _capture_viewport(doc)
         finally:
             _restore_view(doc, saved)
