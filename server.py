@@ -29,10 +29,11 @@ from tools.id_annotations import register_id_annotation_tools
 from tools.match_properties import register_match_properties_tools
 from tools.images import register_image_tools
 
-# Curriculum-driven tools (B.Des Interior Design 2025 Pattern)
+# Interior design domain tools
 from tools.anthropometry import register_anthropometry_tools
 from tools.mep_services import register_mep_services_tools
 from tools.tile_design import register_tile_design_tools
+from tools.knowledge import register_knowledge_tools
 
 # Visual feedback
 from tools.screenshots import register_screenshot_tools
@@ -65,10 +66,11 @@ register_id_annotation_tools(mcp)
 register_match_properties_tools(mcp)
 register_image_tools(mcp)
 
-# Curriculum-driven tools
+# Interior design domain tools
 register_anthropometry_tools(mcp)
 register_mep_services_tools(mcp)
 register_tile_design_tools(mcp)
+register_knowledge_tools(mcp)
 
 # Visual feedback
 register_screenshot_tools(mcp)

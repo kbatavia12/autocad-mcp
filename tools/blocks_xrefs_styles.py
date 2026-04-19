@@ -10,6 +10,125 @@ import win32com.client
 from autocad_helpers import get_active_doc, get_model_space, point
 
 
+# ---------------------------------------------------------------------------
+# Batchable _do_* functions
+# ---------------------------------------------------------------------------
+
+def _do_set_block_attribute_value(handle: str, tag: str, value: str) -> dict:
+    doc = get_active_doc()
+    obj = doc.HandleToObject(handle)
+    for attr in obj.GetAttributes():
+        if attr.TagString.upper() == tag.upper():
+            attr.TextString = value
+            obj.Update()
+            return {"status": "ok", "message": f"Attribute '{tag}' on {handle} set to '{value}'"}
+    raise ValueError(f"Attribute tag '{tag}' not found on block {handle}")
+
+
+def _do_add_angular_dimension(
+    arc_x: float, arc_y: float,
+    x1: float, y1: float,
+    x2: float, y2: float,
+    text_x: float, text_y: float,
+    layer: str = "",
+) -> dict:
+    space = get_model_space()
+    dim = space.AddDimAngular(
+        [arc_x, arc_y, 0.0], [x1, y1, 0.0],
+        [x2, y2, 0.0], [text_x, text_y, 0.0],
+    )
+    if layer:
+        dim.Layer = layer
+    return {"status": "ok", "handle": dim.Handle, "message": "Angular dimension added"}
+
+
+def _do_add_diameter_dimension(
+    handle: str,
+    leader_x: float, leader_y: float,
+    layer: str = "",
+) -> dict:
+    doc = get_active_doc()
+    space = get_model_space()
+    obj = doc.HandleToObject(handle)
+    dim = space.AddDimDiametric(
+        list(obj.Center), [leader_x, leader_y, 0.0],
+        abs(leader_x - obj.Center[0]),
+    )
+    if layer:
+        dim.Layer = layer
+    return {"status": "ok", "handle": dim.Handle, "message": f"Diameter dimension on {handle}"}
+
+
+def _do_add_ordinate_dimension(
+    feature_x: float, feature_y: float,
+    leader_x: float, leader_y: float,
+    use_x_axis: bool = False,
+    layer: str = "",
+) -> dict:
+    space = get_model_space()
+    dim = space.AddDimOrdinate(
+        [feature_x, feature_y, 0.0], [leader_x, leader_y, 0.0], use_x_axis,
+    )
+    if layer:
+        dim.Layer = layer
+    return {"status": "ok", "handle": dim.Handle, "message": "Ordinate dimension added"}
+
+
+def _do_add_leader(points_flat: list, annotation: str, layer: str = "") -> dict:
+    space = get_model_space()
+    pts = win32com.client.VARIANT(
+        pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(v) for v in points_flat]
+    )
+    leader = space.AddLeader(pts, None, 1)
+    mtext = space.AddMText(
+        [float(points_flat[-3]), float(points_flat[-2]), 0.0], 50.0, annotation,
+    )
+    leader.Annotation = mtext
+    if layer:
+        leader.Layer = layer
+        mtext.Layer = layer
+    return {"status": "ok", "handle": leader.Handle,
+            "message": f"Leader with annotation '{annotation}'"}
+
+
+def _do_create_table(
+    x: float, y: float,
+    num_rows: int, num_cols: int,
+    row_height: float = 8.0, col_width: float = 40.0,
+    title: str = "", layer: str = "",
+) -> dict:
+    space = get_model_space()
+    table = space.AddTable(
+        point(x, y), int(num_rows), int(num_cols),
+        float(row_height), float(col_width),
+    )
+    if title:
+        table.SetText(0, 0, title)
+        table.SetRowHeight(0, row_height * 1.5)
+    if layer:
+        table.Layer = layer
+    return {"status": "ok", "handle": table.Handle,
+            "message": f"Table {num_rows}×{num_cols} at ({x},{y})"}
+
+
+def _do_set_table_cell(handle: str, row: int, col: int, value: str) -> dict:
+    doc = get_active_doc()
+    doc.HandleToObject(handle).SetText(int(row), int(col), value)
+    return {"status": "ok", "message": f"Table {handle} cell ({row},{col}) = '{value}'"}
+
+
+def _do_set_table_column_width(handle: str, col: int, width: float) -> dict:
+    doc = get_active_doc()
+    doc.HandleToObject(handle).SetColumnWidth(int(col), float(width))
+    return {"status": "ok", "message": f"Table {handle} col {col} width={width}"}
+
+
+def _do_set_table_row_height(handle: str, row: int, height: float) -> dict:
+    doc = get_active_doc()
+    doc.HandleToObject(handle).SetRowHeight(int(row), float(height))
+    return {"status": "ok", "message": f"Table {handle} row {row} height={height}"}
+
+
 def register_blocks_xrefs_styles_tools(mcp):
 
     # -----------------------------------------------------------------------
@@ -85,21 +204,14 @@ def register_blocks_xrefs_styles_tools(mcp):
         return result
 
     @mcp.tool()
-    def set_block_attribute_value(handle: str, tag: str, value: str) -> str:
+    def set_block_attribute_value(handle: str, tag: str, value: str) -> dict:
         """
         Set the value of a specific attribute on a block reference.
         handle: the block reference entity handle
         tag: the attribute tag name to update
         value: the new value to set
         """
-        doc = get_active_doc()
-        obj = doc.HandleToObject(handle)
-        for attr in obj.GetAttributes():
-            if attr.TagString.upper() == tag.upper():
-                attr.TextString = value
-                obj.Update()
-                return f"Attribute '{tag}' on block {handle} set to '{value}'"
-        raise ValueError(f"Attribute tag '{tag}' not found on block {handle}")
+        return _do_set_block_attribute_value(handle, tag, value)
 
     @mcp.tool()
     def sync_block_attributes(block_name: str) -> str:
@@ -329,37 +441,18 @@ def register_blocks_xrefs_styles_tools(mcp):
         x2: float, y2: float,
         text_x: float, text_y: float,
         layer: str = ""
-    ) -> str:
+    ) -> dict:
         """Add an angular dimension. arc point is the vertex of the angle."""
-        space = get_model_space()
-        dim = space.AddDimAngular(
-            [arc_x, arc_y, 0.0],
-            [x1, y1, 0.0],
-            [x2, y2, 0.0],
-            [text_x, text_y, 0.0]
-        )
-        if layer:
-            dim.Layer = layer
-        return f"Angular dimension added; handle={dim.Handle}"
+        return _do_add_angular_dimension(arc_x, arc_y, x1, y1, x2, y2, text_x, text_y, layer)
 
     @mcp.tool()
     def add_diameter_dimension(
         handle: str,
         leader_x: float, leader_y: float,
         layer: str = ""
-    ) -> str:
+    ) -> dict:
         """Add a diameter dimension to a circle or arc."""
-        doc = get_active_doc()
-        space = get_model_space()
-        obj = doc.HandleToObject(handle)
-        dim = space.AddDimDiametric(
-            list(obj.Center),
-            [leader_x, leader_y, 0.0],
-            abs(leader_x - obj.Center[0])
-        )
-        if layer:
-            dim.Layer = layer
-        return f"Diameter dimension added; handle={dim.Handle}"
+        return _do_add_diameter_dimension(handle, leader_x, leader_y, layer)
 
     @mcp.tool()
     def add_ordinate_dimension(
@@ -367,20 +460,13 @@ def register_blocks_xrefs_styles_tools(mcp):
         leader_x: float, leader_y: float,
         use_x_axis: bool = False,
         layer: str = ""
-    ) -> str:
+    ) -> dict:
         """
         Add an ordinate dimension (measures distance from origin along X or Y axis).
         use_x_axis=True measures the X coordinate; False measures Y coordinate.
         """
-        space = get_model_space()
-        dim = space.AddDimOrdinate(
-            [feature_x, feature_y, 0.0],
-            [leader_x, leader_y, 0.0],
-            use_x_axis
-        )
-        if layer:
-            dim.Layer = layer
-        return f"Ordinate dimension added; handle={dim.Handle}"
+        return _do_add_ordinate_dimension(feature_x, feature_y, leader_x, leader_y,
+                                          use_x_axis, layer)
 
     # -----------------------------------------------------------------------
     # MULTILEADERS
@@ -391,27 +477,13 @@ def register_blocks_xrefs_styles_tools(mcp):
         points_flat: list[float],
         annotation: str,
         layer: str = ""
-    ) -> str:
+    ) -> dict:
         """
         Add a leader with annotation text.
         points_flat: flat list of XYZ coords for the leader line [x1,y1,z1, x2,y2,z2, ...]
         annotation: the text to display at the end of the leader
         """
-        space = get_model_space()
-        pts = win32com.client.VARIANT(
-            pythoncom.VT_ARRAY | pythoncom.VT_R8, [float(v) for v in points_flat]
-        )
-        leader = space.AddLeader(pts, None, 1)  # 1 = acAnnotationMText
-        mtext = space.AddMText(
-            [float(points_flat[-3]), float(points_flat[-2]), 0.0],
-            50.0,
-            annotation
-        )
-        leader.Annotation = mtext
-        if layer:
-            leader.Layer = layer
-            mtext.Layer = layer
-        return f"Leader added with annotation '{annotation}'"
+        return _do_add_leader(points_flat, annotation, layer)
 
     # -----------------------------------------------------------------------
     # TABLES
@@ -425,33 +497,17 @@ def register_blocks_xrefs_styles_tools(mcp):
         col_width: float = 40.0,
         title: str = "",
         layer: str = ""
-    ) -> str:
+    ) -> dict:
         """
         Create a table in model space.
         Returns the table handle for further cell editing.
         """
-        space = get_model_space()
-        table = space.AddTable(
-            point(x, y),
-            int(num_rows),
-            int(num_cols),
-            float(row_height),
-            float(col_width)
-        )
-        if title:
-            table.SetText(0, 0, title)
-            table.SetRowHeight(0, row_height * 1.5)
-        if layer:
-            table.Layer = layer
-        return f"Table created at ({x},{y}), {num_rows}x{num_cols}; handle={table.Handle}"
+        return _do_create_table(x, y, num_rows, num_cols, row_height, col_width, title, layer)
 
     @mcp.tool()
-    def set_table_cell(handle: str, row: int, col: int, value: str) -> str:
+    def set_table_cell(handle: str, row: int, col: int, value: str) -> dict:
         """Set the text value of a specific cell in a table (0-based row/col)."""
-        doc = get_active_doc()
-        table = doc.HandleToObject(handle)
-        table.SetText(int(row), int(col), value)
-        return f"Table {handle} cell ({row},{col}) set to '{value}'"
+        return _do_set_table_cell(handle, row, col, value)
 
     @mcp.tool()
     def get_table_cell(handle: str, row: int, col: int) -> str:
@@ -461,17 +517,11 @@ def register_blocks_xrefs_styles_tools(mcp):
         return table.GetText(int(row), int(col))
 
     @mcp.tool()
-    def set_table_column_width(handle: str, col: int, width: float) -> str:
+    def set_table_column_width(handle: str, col: int, width: float) -> dict:
         """Set the width of a specific column in a table (0-based col index)."""
-        doc = get_active_doc()
-        table = doc.HandleToObject(handle)
-        table.SetColumnWidth(int(col), float(width))
-        return f"Table {handle} column {col} width set to {width}"
+        return _do_set_table_column_width(handle, col, width)
 
     @mcp.tool()
-    def set_table_row_height(handle: str, row: int, height: float) -> str:
+    def set_table_row_height(handle: str, row: int, height: float) -> dict:
         """Set the height of a specific row in a table (0-based row index)."""
-        doc = get_active_doc()
-        table = doc.HandleToObject(handle)
-        table.SetRowHeight(int(row), float(height))
-        return f"Table {handle} row {row} height set to {height}"
+        return _do_set_table_row_height(handle, row, height)

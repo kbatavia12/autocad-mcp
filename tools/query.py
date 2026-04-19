@@ -42,6 +42,73 @@ def _bbox_info(obj):
         return {"center_x": None, "center_y": None, "width": None, "height": None}
 
 
+def _dimension_info(obj) -> dict:
+    """
+    Extract measurement value, display text, reference points, and style
+    from any AcDbDim* entity.
+
+    Properties attempted per dimension subtype:
+      MeasurementValue — the actual geometric measurement (never overridden)
+      TextString        — the displayed text (respects user text overrides)
+      ExtLine1Point     — first measured point (aligned/rotated/ordinate dims)
+      ExtLine2Point     — second measured point
+      TextPosition      — where the dimension text sits in the drawing
+      StyleName         — dimension style applied
+
+    Each property is attempted independently — missing properties on a
+    subtype (e.g. ordinate dims have no ExtLine1/2Point) are silently
+    skipped so the rest of the dict still returns.
+    """
+    d = {}
+    for attr, key in [
+        ("MeasurementValue", "measurement"),
+        ("TextString",       "text"),
+        ("StyleName",        "dim_style"),
+    ]:
+        try:
+            val = getattr(obj, attr)
+            d[key] = round(val, 3) if isinstance(val, float) else val
+        except Exception:
+            pass
+    for attr, key in [
+        ("ExtLine1Point", "point1"),
+        ("ExtLine2Point", "point2"),
+        ("TextPosition",  "text_position"),
+    ]:
+        try:
+            pt = list(getattr(obj, attr))
+            d[key] = [round(pt[0], 3), round(pt[1], 3)]
+        except Exception:
+            pass
+    return d
+
+
+def _block_ref_info(obj) -> dict:
+    """Return insertion point, rotation, scale, and attributes for a block reference."""
+    info = {}
+    try:
+        pt = list(obj.InsertionPoint)
+        info["insertion_point"] = [round(pt[0], 3), round(pt[1], 3)]
+    except Exception:
+        pass
+    try:
+        info["rotation_deg"] = round(math.degrees(obj.Rotation), 3)
+    except Exception:
+        pass
+    try:
+        info["x_scale"] = round(obj.XScaleFactor, 6)
+        info["y_scale"] = round(obj.YScaleFactor, 6)
+    except Exception:
+        pass
+    try:
+        attrs = obj.GetAttributes()
+        if attrs:
+            info["attributes"] = {a.TagString: a.TextString for a in attrs}
+    except Exception:
+        pass
+    return info
+
+
 def _describe_entity(obj):
     """Return a human-readable description string for an entity."""
     t = obj.ObjectName
@@ -58,19 +125,102 @@ def _describe_entity(obj):
         if t == "AcDbArc":
             return f"Arc, radius={round(obj.Radius,2)}"
         if t == "AcDbLwPolyline":
-            bb = _bbox_info(obj)
-            return f"Polyline, {bb['width']}×{bb['height']}"
+            try:
+                n = obj.NumberOfVertices
+                closed = obj.Closed
+                shape = "closed" if closed else "open"
+                return f"Polyline ({shape}, {n} vertices)"
+            except Exception:
+                bb = _bbox_info(obj)
+                return f"Polyline, {bb['width']}×{bb['height']}"
         if t in ("AcDbText", "AcDbMText"):
             return f"Text: '{obj.TextString[:60]}'"
         if t == "AcDbBlockReference":
-            return f"Block: {obj.Name}"
+            d = _block_ref_info(obj)
+            ip = d.get("insertion_point")
+            rot = d.get("rotation_deg")
+            parts = [f"Block: {obj.Name}"]
+            if ip:
+                parts.append(f"at ({ip[0]}, {ip[1]})")
+            if rot is not None:
+                parts.append(f"rot={rot}°")
+            return ", ".join(parts)
         if t == "AcDbHatch":
             return f"Hatch: {obj.PatternName}"
         if t.startswith("AcDbDim"):
-            return f"Dimension ({t})"
+            d = _dimension_info(obj)
+            text = d.get("text") or (
+                str(round(d["measurement"], 1)) if "measurement" in d else None
+            )
+            p1, p2 = d.get("point1"), d.get("point2")
+            if text and p1 and p2:
+                return (
+                    f"Dimension: {text} "
+                    f"from ({p1[0]}, {p1[1]}) to ({p2[0]}, {p2[1]})"
+                )
+            return f"Dimension: {text or t}"
     except Exception:
         pass
     return t
+
+
+# ---------------------------------------------------------------------------
+# Batchable _do_* functions
+# ---------------------------------------------------------------------------
+
+def _do_insert_block(
+    name: str,
+    x: float, y: float, z: float = 0.0,
+    x_scale: float = 1.0, y_scale: float = 1.0, z_scale: float = 1.0,
+    rotation_deg: float = 0.0,
+    layer: str = "",
+) -> dict:
+    doc = get_active_doc()
+    space = get_model_space()
+    ref = space.InsertBlock(
+        [x, y, z], name,
+        x_scale, y_scale, z_scale,
+        math.radians(rotation_deg),
+    )
+    if layer:
+        from autocad_helpers import ensure_layer
+        ensure_layer(doc, layer)
+        ref.Layer = layer
+    return {"status": "ok", "handle": ref.Handle,
+            "message": f"Block '{name}' inserted at ({x},{y})"}
+
+
+def _do_add_linear_dimension(
+    x1: float, y1: float,
+    x2: float, y2: float,
+    text_x: float, text_y: float,
+    layer: str = "",
+) -> dict:
+    space = get_model_space()
+    dim = space.AddDimAligned(point(x1, y1), point(x2, y2), point(text_x, text_y))
+    if layer:
+        dim.Layer = layer
+    return {"status": "ok", "handle": dim.Handle,
+            "message": f"Linear dimension from ({x1},{y1}) to ({x2},{y2})"}
+
+
+def _do_add_radius_dimension(
+    handle: str,
+    leader_x: float, leader_y: float,
+    layer: str = "",
+) -> dict:
+    doc = get_active_doc()
+    space = get_model_space()
+    obj = doc.HandleToObject(handle)
+    dim = space.AddDimRadial(
+        list(obj.Center),
+        [leader_x, leader_y, 0.0],
+        abs(leader_x - obj.Center[0]),
+    )
+    if layer:
+        dim.Layer = layer
+    return {"status": "ok", "handle": dim.Handle,
+            "message": f"Radius dimension on {handle}"}
 
 
 def register_query_tools(mcp):
@@ -233,6 +383,14 @@ def register_query_tools(mcp):
             "layer": obj.Layer,
         }
         info.update(_bbox_info(obj))
+        if obj.ObjectName == "AcDbBlockReference":
+            try:
+                info["block_name"] = obj.Name
+            except Exception:
+                pass
+            info.update(_block_ref_info(obj))
+        elif obj.ObjectName.startswith("AcDbDim"):
+            info["dimension_data"] = _dimension_info(obj)
         info["description"] = _describe_entity(obj)
         return info
 
@@ -373,8 +531,11 @@ def register_query_tools(mcp):
     @mcp.tool()
     def identify_entities(handles: list[str]) -> list[dict]:
         """
-        Return type, layer, bounding box, centre, rotation, block name, and a
-        human-readable description for every handle in the list — all in one call.
+        Return type, layer, bounding box, centre, and a human-readable description
+        for every handle in the list — all in one call.
+        Block references additionally include: block_name, insertion_point [x, y],
+        rotation_deg, x_scale, y_scale.
+        Other entity types include rotation_deg where the entity supports it.
         Entities that fail (deleted, unsupported) are returned with status='error'.
         Replaces N sequential identify_entity calls with 1.
         """
@@ -388,14 +549,19 @@ def register_query_tools(mcp):
                 entry["layer"] = obj.Layer
                 entry.update(_bbox_info(obj))
                 entry["description"] = _describe_entity(obj)
-                try:
-                    entry["rotation_deg"] = round(math.degrees(obj.Rotation), 3)
-                except Exception:
-                    entry["rotation_deg"] = None
-                try:
-                    entry["block_name"] = obj.Name  # block references
-                except Exception:
-                    entry["block_name"] = None
+                if obj.ObjectName == "AcDbBlockReference":
+                    try:
+                        entry["block_name"] = obj.Name
+                    except Exception:
+                        pass
+                    entry.update(_block_ref_info(obj))
+                elif obj.ObjectName.startswith("AcDbDim"):
+                    entry["dimension_data"] = _dimension_info(obj)
+                else:
+                    try:
+                        entry["rotation_deg"] = round(math.degrees(obj.Rotation), 3)
+                    except Exception:
+                        pass
                 entry["status"] = "ok"
             except Exception as e:
                 entry["status"] = "error"
@@ -425,19 +591,10 @@ def register_query_tools(mcp):
         x: float, y: float, z: float = 0.0,
         x_scale: float = 1.0, y_scale: float = 1.0, z_scale: float = 1.0,
         rotation_deg: float = 0.0,
-        layer: str = ""
-    ) -> str:
+        layer: str = "",
+    ) -> dict:
         """Insert a block reference into model space by block name."""
-        import math
-        space = get_model_space()
-        ref = space.InsertBlock(
-            [x, y, z], name,
-            x_scale, y_scale, z_scale,
-            math.radians(rotation_deg)
-        )
-        if layer:
-            ref.Layer = layer
-        return f"Block '{name}' inserted at ({x},{y},{z}); handle={ref.Handle}"
+        return _do_insert_block(name, x, y, z, x_scale, y_scale, z_scale, rotation_deg, layer)
 
     @mcp.tool()
     def list_linetypes() -> list[str]:
@@ -460,34 +617,16 @@ def register_query_tools(mcp):
         x1: float, y1: float,
         x2: float, y2: float,
         text_x: float, text_y: float,
-        layer: str = ""
-    ) -> str:
+        layer: str = "",
+    ) -> dict:
         """Add a horizontal/vertical aligned linear dimension between two points."""
-        space = get_model_space()
-        dim = space.AddDimAligned(
-            point(x1, y1),
-            point(x2, y2),
-            point(text_x, text_y)
-        )
-        if layer:
-            dim.Layer = layer
-        return f"Aligned dimension added; handle={dim.Handle}"
+        return _do_add_linear_dimension(x1, y1, x2, y2, text_x, text_y, layer)
 
     @mcp.tool()
     def add_radius_dimension(
         handle: str,
         leader_x: float, leader_y: float,
-        layer: str = ""
-    ) -> str:
+        layer: str = "",
+    ) -> dict:
         """Add a radius dimension to a circle or arc entity."""
-        doc = get_active_doc()
-        space = get_model_space()
-        obj = doc.HandleToObject(handle)
-        dim = space.AddDimRadial(
-            list(obj.Center),
-            [leader_x, leader_y, 0.0],
-            abs(leader_x - obj.Center[0])
-        )
-        if layer:
-            dim.Layer = layer
-        return f"Radius dimension added; handle={dim.Handle}"
+        return _do_add_radius_dimension(handle, leader_x, leader_y, layer)
